@@ -1,0 +1,80 @@
+<%
+  const adminUser = typeof user !== 'undefined' ? user : null;
+%>
+<aside class="admin-sidebar">
+  <div class="sidebar-brand">
+    <a href="/admin" class="brand-link">
+      <span class="brand-mark">ABC</span>
+      <span class="brand-copy">
+        <strong>Aptitude Booster</strong>
+        <small>Admin Console</small>
+      </span>
+    </a>
+  </div>
+
+  <div class="sidebar-profile">
+    <img src="/images/default-avatar.png" alt="Admin" class="sidebar-avatar" width="44" height="44">
+    <div>
+      <strong><%= adminUser ? adminUser.username : 'Admin' %></strong>
+      <small><%= adminUser ? adminUser.email : 'Administrator' %></small>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <p class="sidebar-label">Navigation</p>
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a href="/admin" class="nav-link <%= currentPage === 'dashboard' ? 'active' : '' %>">
+          <i class="bi bi-grid"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/admin/posts" class="nav-link <%= currentPage === 'posts' ? 'active' : '' %>">
+          <i class="bi bi-file-earmark-text"></i>
+          <span>Posts</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/admin/categories" class="nav-link <%= currentPage === 'categories' ? 'active' : '' %>">
+          <i class="bi bi-folder"></i>
+          <span>Categories</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/admin/tags" class="nav-link <%= currentPage === 'tags' ? 'active' : '' %>">
+          <i class="bi bi-tags"></i>
+          <span>Tags</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/admin/quizzes" class="nav-link <%= currentPage === 'quizzes' ? 'active' : '' %>">
+          <i class="bi bi-patch-question"></i>
+          <span>Quizzes</span>
+        </a>
+      </li>
+      <% if (adminUser && adminUser.role === 'admin') { %>
+        <li class="nav-item">
+          <a href="/admin/users" class="nav-link <%= currentPage === 'users' ? 'active' : '' %>">
+            <i class="bi bi-people"></i>
+            <span>Users</span>
+          </a>
+        </li>
+      <% } %>
+    </ul>
+  </nav>
+
+  <div class="sidebar-footer">
+    <a href="/" class="nav-link" target="_blank">
+      <i class="bi bi-box-arrow-up-right"></i>
+      <span>View Site</span>
+    </a>
+    <form method="POST" action="/admin/logout" class="m-0">
+      <%- include('./csrf') %>
+      <button type="submit" class="nav-link nav-link-danger border-0 bg-transparent w-100 text-start">
+        <i class="bi bi-box-arrow-left"></i>
+        <span>Logout</span>
+      </button>
+    </form>
+  </div>
+</aside>

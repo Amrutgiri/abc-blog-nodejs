@@ -1,0 +1,81 @@
+
+
+<div class="page-header py-5 bg-light">
+  <div class="container">
+    <h1 class="fw-bold">Search Results</h1>
+    <% if (searchQuery) { %>
+      <p class="text-muted mb-0">Showing results for: <strong><%= searchQuery %></strong></p>
+    <% } %>
+  </div>
+</div>
+
+<section class="search-results py-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8">
+        <% if (posts && posts.length > 0) { %>
+          <p class="text-muted mb-4">Found <%= total %> result(s)</p>
+          <div class="row g-4">
+            <% posts.forEach(function(post) { %>
+              <div class="col-md-6">
+                <article class="blog-card card h-100 border-0 shadow-sm">
+                  <img src="<%= post.featuredImage || '/images/placeholder.jpg' %>" class="card-img-top" alt="<%= post.title %>" loading="lazy">
+                  <div class="card-body">
+                    <h5 class="card-title mb-2">
+                      <a href="/blog/<%= post.slug %>" class="text-decoration-none text-dark"><%- post.highlightedTitle || post.title %></a>
+                    </h5>
+                    <p class="card-text text-muted mb-3"><%- post.highlightedExcerpt || (post.excerpt ? post.excerpt.substring(0, 100) + '...' : '') %></p>
+                  </div>
+                </article>
+              </div>
+            <% }); %>
+          </div>
+
+          <% if (totalPages > 1) { %>
+            <nav aria-label="Search pagination" class="mt-5">
+              <ul class="pagination justify-content-center">
+                <% if (page > 1) { %>
+                  <li class="page-item">
+                    <a class="page-link" href="?q=<%= searchQuery %>&page=<%= page - 1 %>">Previous</a>
+                  </li>
+                <% } %>
+                <% for (var i = 1; i <= totalPages; i++) { %>
+                  <li class="page-item <%= page === i ? 'active' : '' %>">
+                    <a class="page-link" href="?q=<%= searchQuery %>&page=<%= i %>"><%= i %></a>
+                  </li>
+                <% } %>
+                <% if (page < totalPages) { %>
+                  <li class="page-item">
+                    <a class="page-link" href="?q=<%= searchQuery %>&page=<%= page + 1 %>">Next</a>
+                  </li>
+                <% } %>
+              </ul>
+            </nav>
+          <% } %>
+        <% } else { %>
+          <div class="text-center py-5">
+            <h4 class="text-muted">No results found for "<%= searchQuery %>"</h4>
+            <p class="text-muted">Try different keywords or browse our categories.</p>
+            <a href="/blog" class="btn btn-primary mt-3">Browse all posts</a>
+          </div>
+        <% } %>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="sidebar">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title mb-3">Search</h5>
+              <form action="/search" method="GET">
+                <div class="input-group">
+                  <input type="text" name="q" class="form-control" placeholder="Search posts..." value="<%= searchQuery || '' %>" minlength="2" required>
+                  <button class="btn btn-primary" type="submit">Go</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

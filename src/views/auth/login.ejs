@@ -1,0 +1,35 @@
+<div class="auth-page py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-5">
+        <div class="card border-0 shadow-sm auth-card">
+          <div class="card-body p-4 p-md-5">
+            <h1 class="h3 fw-bold mb-2">Welcome back</h1>
+            <p class="text-muted mb-4">Log in to save quiz results and track your progress.</p>
+
+            <form method="POST" action="/auth/login">
+              <%- include('../partials/csrf') %>
+              <input type="hidden" name="redirectTo" value="<%= redirectTo || '' %>">
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control form-control-lg" name="email" autocomplete="email" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-control form-control-lg" name="password" autocomplete="current-password" required minlength="6">
+              </div>
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">Login</button>
+              </div>
+            </form>
+
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <a href="/auth/forgot-password" class="small">Forgot password?</a>
+              <a href="/auth/register" class="small">Create account</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

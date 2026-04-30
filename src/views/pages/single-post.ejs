@@ -1,0 +1,201 @@
+
+
+<div class="page-header py-5 bg-light">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item"><a href="/blog">Blog</a></li>
+        <% if (post.category) { %>
+          <li class="breadcrumb-item"><a href="/category/<%= post.category.slug %>"><%= post.category.name %></a></li>
+        <% } %>
+        <li class="breadcrumb-item active" aria-current="page"><%= post.title.substring(0, 30) %>...</li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<article class="post-detail py-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8">
+        <article class="blog-post">
+          <header class="mb-4">
+            <h1 class="display-5 fw-bold mb-3"><%= post.title %></h1>
+            <div class="post-meta mb-4">
+              <% if (post.author) { %>
+                <div class="d-flex align-items-center gap-2">
+                  <img src="<%= post.author.avatar || '/images/default-avatar.png' %>" alt="<%= post.author.username %>" class="rounded-circle" width="40" height="40">
+                  <div>
+                    <strong><%= post.author.username %></strong>
+                    <% if (post.author.bio) { %>
+                      <small class="d-block text-muted"><%= post.author.bio %></small>
+                    <% } %>
+                  </div>
+                </div>
+              <% } %>
+              <span class="text-muted"><%= post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '' %></span>
+              <span class="text-muted"><%= post.views %> views</span>
+              <span class="post-reading-time"><%= post.readingTime || 1 %> min read</span>
+            </div>
+            <% if (post.featuredImage) { %>
+              <img src="<%= post.featuredImage %>" alt="<%= post.title %>" class="img-fluid rounded-3 w-100" style="max-height: 500px; object-fit: cover;">
+            <% } %>
+          </header>
+
+          <% if (post.toc && post.toc.length > 0) { %>
+            <nav class="post-toc" aria-label="Table of contents">
+              <h6 class="mb-3">On this page</h6>
+              <ol>
+                <% post.toc.forEach(function(item) { %>
+                  <li class="ms-<%= item.level === 3 ? '3' : item.level === 4 ? '4' : '0' %>">
+                    <a href="#<%= item.slug %>"><%= item.text %></a>
+                  </li>
+                <% }); %>
+              </ol>
+            </nav>
+          <% } %>
+
+          <div class="post-content">
+            <% if (post.content && post.content.blocks) { %>
+              <% post.content.blocks.forEach(function(block) { %>
+                <% if (block.type === 'paragraph') { %>
+                  <p><%- block.data.text %></p>
+                <% } else if (block.type === 'header') { %>
+                  <% const headingId = String(block.data.text || '').toLowerCase().replace(/<[^>]*>/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''); %>
+                  <h<%= block.data.level %> id="<%= headingId %>"><%- block.data.text %></h<%= block.data.level %>>
+                <% } else if (block.type === 'list') { %>
+                  <% if (block.data.style === 'ordered') { %>
+                    <ol>
+                      <% block.data.items.forEach(function(item) { %>
+                        <li><%- item %></li>
+                      <% }); %>
+                    </ol>
+                  <% } else { %>
+                    <ul>
+                      <% block.data.items.forEach(function(item) { %>
+                        <li><%- item %></li>
+                      <% }); %>
+                    </ul>
+                  <% } %>
+                <% } else if (block.type === 'code') { %>
+                  <pre><code><%- block.data.code %></code></pre>
+                <% } else if (block.type === 'quote') { %>
+                  <blockquote class="blockquote">
+                    <p><%- block.data.text %></p>
+                    <% if (block.data.caption) { %>
+                      <footer class="blockquote-footer"><%- block.data.caption %></footer>
+                    <% } %>
+                  </blockquote>
+                <% } else if (block.type === 'image') { %>
+                  <figure class="figure w-100">
+                    <img src="<%= block.data.file.url %>" alt="<%= block.data.caption || '' %>" class="figure-img img-fluid rounded">
+                    <% if (block.data.caption) { %>
+                      <figcaption class="figure-caption text-center"><%= block.data.caption %></figcaption>
+                    <% } %>
+                  </figure>
+                <% } else if (block.type === 'delimiter') { %>
+                  <hr>
+                <% } %>
+              <% }); %>
+            <% } else { %>
+              <%- post.excerpt || '<p>No content available.</p>' %>
+            <% } %>
+          </div>
+
+          <% if (post.tags && post.tags.length > 0) { %>
+            <div class="post-tags mt-5 pt-4 border-top">
+              <h6 class="mb-3">Tags:</h6>
+              <div class="d-flex flex-wrap gap-2">
+                <% post.tags.forEach(function(tag) { %>
+                  <a href="/tag/<%= tag.slug %>" class="badge bg-secondary text-decoration-none"><%= tag.name %></a>
+                <% }); %>
+              </div>
+            </div>
+          <% } %>
+
+          <div class="share-buttons mt-4">
+            <h6 class="mb-3">Share:</h6>
+            <a href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent(seo.canonical) %>" target="_blank" class="btn btn-sm btn-outline-primary me-2">Facebook</a>
+            <a href="https://twitter.com/intent/tweet?url=<%= encodeURIComponent(seo.canonical) %>" target="_blank" class="btn btn-sm btn-outline-info me-2">Twitter</a>
+            <a href="https://www.linkedin.com/shareArticle?mini=true&url=<%= encodeURIComponent(seo.canonical) %>" target="_blank" class="btn btn-sm btn-outline-primary">LinkedIn</a>
+          </div>
+
+          <% if (relatedQuiz) { %>
+            <div class="card border-0 shadow-sm mt-5 quiz-linked-card">
+              <div class="card-body">
+                <p class="text-uppercase text-muted mb-2">Related Quiz</p>
+                <h3 class="h5"><%= relatedQuiz.title %></h3>
+                <p class="text-muted mb-3"><%= relatedQuiz.description || 'Test your understanding with this related quiz.' %></p>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                  <span class="badge bg-primary"><%= relatedQuiz.category %></span>
+                  <span class="badge bg-light text-dark"><%= relatedQuiz.totalQuestions %> questions</span>
+                  <span class="badge bg-light text-dark"><%= relatedQuiz.duration %> min</span>
+                </div>
+                <a href="/quizzes/<%= relatedQuiz.slug %>" class="btn btn-primary">Take Quiz</a>
+              </div>
+            </div>
+          <% } %>
+        </article>
+
+        <% if (relatedPosts && relatedPosts.length > 0) { %>
+          <section class="related-posts mt-5 pt-4 border-top">
+            <h3 class="mb-4">Related Posts</h3>
+            <div class="row g-3">
+              <% relatedPosts.forEach(function(related) { %>
+                <div class="col-md-4">
+                  <article class="card border-0 shadow-sm h-100">
+                    <img src="<%= related.featuredImage || '/images/placeholder.jpg' %>" class="card-img-top" alt="<%= related.title %>" style="height: 150px; object-fit: cover;">
+                    <div class="card-body">
+                      <h6 class="card-title">
+                        <a href="/blog/<%= related.slug %>" class="text-decoration-none text-dark"><%= related.title.substring(0, 50) %>...</a>
+                      </h6>
+                    </div>
+                  </article>
+                </div>
+              <% }); %>
+            </div>
+          </section>
+        <% } %>
+      </div>
+
+      <div class="col-lg-4">
+        <aside class="sidebar">
+          <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title mb-3">Categories</h5>
+              <ul class="list-group list-group-flush">
+                <% if (categories && categories.length > 0) { %>
+                  <% categories.forEach(function(cat) { %>
+                    <li class="list-group-item px-0">
+                      <a href="/category/<%= cat.slug %>" class="text-decoration-none d-flex justify-content-between align-items-center">
+                        <%= cat.name %>
+                        <span class="badge bg-primary rounded-pill"><%= cat.postCount || 0 %></span>
+                      </a>
+                    </li>
+                  <% }); %>
+                <% } %>
+              </ul>
+            </div>
+          </div>
+
+          <% if (recentPosts && recentPosts.length > 0) { %>
+            <div class="card shadow-sm">
+              <div class="card-body">
+                <h5 class="card-title mb-3">Recent Posts</h5>
+                <% recentPosts.forEach(function(recent) { %>
+                  <div class="mb-3 pb-3 border-bottom">
+                    <a href="/blog/<%= recent.slug %>" class="text-decoration-none">
+                      <h6 class="mb-1 text-dark"><%= recent.title.substring(0, 40) %>...</h6>
+                      <small class="text-muted"><%= recent.publishedAt ? new Date(recent.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '' %></small>
+                    </a>
+                  </div>
+                <% }); %>
+              </div>
+            </div>
+          <% } %>
+        </aside>
+      </div>
+    </div>
+  </div>
+</article>

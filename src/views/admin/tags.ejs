@@ -1,0 +1,47 @@
+
+
+<div class="tags-content">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4>Tags</h4>
+    <a href="/admin/tags/new" class="btn btn-primary">
+      <i class="bi bi-plus-circle me-2"></i>New Tag
+    </a>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0" data-datatable="true">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Slug</th>
+              <th>Posts</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (tags && tags.length > 0) { %>
+              <% tags.forEach(function(tag) { %>
+                <tr>
+                  <td class="fw-semibold"><%= tag.name %></td>
+                  <td><code><%= tag.slug %></code></td>
+                  <td><%= tag.postCount || 0 %></td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-danger btn-delete" data-id="<%= tag._id %>" data-type="tag">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="4" class="text-center text-muted py-4">No tags found</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

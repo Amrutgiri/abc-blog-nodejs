@@ -1,0 +1,113 @@
+<div class="quiz-result-page py-5">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+              <div>
+                <p class="text-muted mb-1">Quiz Result</p>
+                <h1 class="h3 mb-2"><%= quiz.title %></h1>
+                <p class="lead text-muted mb-0"><%= performanceMessage %></p>
+              </div>
+              <a href="/quizzes/<%= quiz.slug %>" class="btn btn-outline-primary">Back to Quiz</a>
+            </div>
+          </div>
+        </div>
+
+        <% if (typeof promptLogin !== 'undefined' && promptLogin) { %>
+          <div class="alert alert-info d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+            <div>
+              <strong>Want to save this score?</strong>
+              <div class="small">Log in or create an account to store your result, track progress, and appear on the leaderboard.</div>
+            </div>
+            <div class="d-flex gap-2">
+              <a href="/auth/login?redirect=/quizzes/<%= quiz.slug %>" class="btn btn-outline-primary">Login</a>
+              <a href="/auth/register?redirect=/quizzes/<%= quiz.slug %>" class="btn btn-primary">Register</a>
+            </div>
+          </div>
+        <% } %>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-3">
+            <div class="quiz-result-stat">
+              <span>Total</span>
+              <strong><%= attempt.totalQuestions %></strong>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="quiz-result-stat">
+              <span>Correct</span>
+              <strong><%= attempt.correctAnswers %></strong>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="quiz-result-stat">
+              <span>Wrong</span>
+              <strong><%= attempt.wrongAnswers %></strong>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="quiz-result-stat">
+              <span>Score</span>
+              <strong><%= attempt.percentage %>%</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h2 class="h5 mb-0">Answer Review</h2>
+              <span class="text-muted">Time taken: <%= Math.max(1, Math.round((attempt.timeTaken || 0) / 60)) %> min</span>
+            </div>
+
+            <div class="quiz-review">
+              <% attempt.answers.forEach(function(answer, index) { %>
+                <div class="quiz-review-item <%= answer.isCorrect ? 'correct' : 'wrong' %>">
+                  <div class="d-flex justify-content-between gap-3 mb-2">
+                    <h3 class="h6 mb-0">Question <%= index + 1 %></h3>
+                    <span class="badge bg-<%= answer.isCorrect ? 'success' : 'danger' %>"><%= answer.isCorrect ? 'Correct' : 'Incorrect' %></span>
+                  </div>
+                  <p class="mb-3"><%= answer.questionText %></p>
+                  <div class="mb-2">
+                    <small class="text-muted d-block">Your answer</small>
+                    <strong><%= answer.selectedAnswer || 'Not answered' %></strong>
+                  </div>
+                  <div class="mb-2">
+                    <small class="text-muted d-block">Correct answer</small>
+                    <strong><%= answer.correctAnswer %></strong>
+                  </div>
+                  <% if (answer.explanation) { %>
+                    <div class="text-muted"><%= answer.explanation %></div>
+                  <% } %>
+                </div>
+              <% }); %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-body">
+            <h5 class="mb-3">Performance</h5>
+            <p class="text-muted mb-3"><%= performanceMessage %></p>
+            <div class="progress mb-2" style="height: 10px;">
+              <div class="progress-bar bg-primary" style="width: <%= attempt.percentage %>%"></div>
+            </div>
+            <small class="text-muted"><%= attempt.percentage %>% score</small>
+          </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <h5 class="mb-3">Next Step</h5>
+            <p class="text-muted">Try another quiz or read related blog posts to improve your score.</p>
+            <a href="/quizzes" class="btn btn-primary w-100">Browse More Quizzes</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

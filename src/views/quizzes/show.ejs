@@ -1,0 +1,97 @@
+<div class="quiz-hero py-5">
+  <div class="container">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-8">
+        <span class="badge bg-light text-dark mb-3 text-uppercase"><%= quiz.category %> Quiz</span>
+        <h1 class="display-5 fw-bold mb-3"><%= quiz.title %></h1>
+        <p class="lead text-muted"><%= quiz.description || 'Test your aptitude with this curated quiz.' %></p>
+        <div class="d-flex flex-wrap gap-3 quiz-meta mb-4">
+          <span><%= totalQuestions %> questions</span>
+          <span><%= quiz.duration %> minutes</span>
+          <span><%= quiz.negativeMarking ? 'Negative marking on' : 'No negative marking' %></span>
+        </div>
+        <a href="/quizzes/<%= quiz.slug %>/take" class="btn btn-primary btn-lg">Start Quiz</a>
+      </div>
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <h5 class="mb-3">Instructions</h5>
+            <p class="text-muted mb-0"><%= quiz.instructions || 'Answer all questions before the timer ends. Your progress is saved automatically while you take the quiz.' %></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="py-5">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white">
+            <h5 class="mb-0">Linked Blog Posts</h5>
+          </div>
+          <div class="card-body">
+            <% if (relatedPosts && relatedPosts.length > 0) { %>
+              <div class="d-flex flex-wrap gap-2">
+                <% relatedPosts.forEach(function(post) { %>
+                  <a href="/blog/<%= post.slug %>" class="btn btn-outline-secondary btn-sm"><%= post.title %></a>
+                <% }); %>
+              </div>
+            <% } else { %>
+              <p class="text-muted mb-0">No blog posts linked to this quiz yet.</p>
+            <% } %>
+          </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Top Scores</h5>
+            <span class="text-muted small">Best performances for this quiz</span>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0" data-datatable="true">
+                <thead>
+                  <tr>
+                    <th>Attempt</th>
+                    <th>Score</th>
+                    <th>Percentage</th>
+                    <th>Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (topAttempts && topAttempts.length > 0) { %>
+                    <% topAttempts.forEach(function(attempt, index) { %>
+                      <tr>
+                        <td>#<%= index + 1 %></td>
+                        <td><%= attempt.score %>/<%= attempt.totalQuestions %></td>
+                        <td><%= attempt.percentage %>%</td>
+                        <td><%= Math.max(1, Math.round((attempt.timeTaken || 0) / 60)) %> min</td>
+                      </tr>
+                    <% }); %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="4" class="text-center text-muted py-4">No attempts yet. Be the first one.</td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm sticky-top" style="top: 96px;">
+          <div class="card-body">
+            <h5 class="mb-3">Ready?</h5>
+            <p class="text-muted">The quiz will shuffle questions and options, then stop automatically when time runs out.</p>
+            <a href="/quizzes/<%= quiz.slug %>/take" class="btn btn-primary w-100">Take Quiz</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

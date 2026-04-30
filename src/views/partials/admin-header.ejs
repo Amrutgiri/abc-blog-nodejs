@@ -1,0 +1,38 @@
+<%
+  const adminUser = typeof user !== 'undefined' ? user : null;
+%>
+<header class="admin-header">
+  <div class="header-left">
+    <button class="btn btn-toggle-sidebar d-lg-none" type="button" aria-label="Toggle navigation">
+      <i class="bi bi-list"></i>
+    </button>
+    <div>
+      <p class="admin-eyebrow mb-1">Admin Panel</p>
+      <h4 class="page-title mb-0"><%= pageTitle || 'Dashboard' %></h4>
+    </div>
+  </div>
+  <div class="header-right">
+    <a href="/" class="btn btn-outline-secondary btn-sm d-none d-md-inline-flex" target="_blank">
+      <i class="bi bi-box-arrow-up-right me-2"></i>View Site
+    </a>
+    <div class="dropdown">
+      <button class="btn btn-user dropdown-toggle" data-bs-toggle="dropdown" type="button">
+        <img src="/images/default-avatar.png" alt="Admin" class="rounded-circle" width="32" height="32">
+        <span class="d-none d-md-inline ms-2"><%= adminUser ? adminUser.username : 'Admin' %></span>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+        <li class="dropdown-item-text">
+          <small class="text-muted">Signed in as</small><br>
+          <strong><%= adminUser ? adminUser.email : 'admin' %></strong>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+          <form method="POST" action="/admin/logout" class="m-0">
+            <%- include('../partials/csrf') %>
+            <button type="submit" class="dropdown-item">Logout</button>
+          </form>
+        </li>
+      </ul>
+    </div>
+  </div>
+</header>

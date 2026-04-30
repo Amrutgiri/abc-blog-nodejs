@@ -1,0 +1,53 @@
+<div class="container py-5">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <h1 class="h3 fw-bold mb-1">Leaderboard</h1>
+      <p class="text-muted mb-0">Compete with other learners and climb the rankings.</p>
+    </div>
+    <div class="btn-group">
+      <a href="/leaderboard?timeframe=daily" class="btn btn-outline-primary <%= timeframe === 'daily' ? 'active' : '' %>">Daily</a>
+      <a href="/leaderboard?timeframe=weekly" class="btn btn-outline-primary <%= timeframe === 'weekly' ? 'active' : '' %>">Weekly</a>
+      <a href="/leaderboard?timeframe=all" class="btn btn-outline-primary <%= timeframe === 'all' ? 'active' : '' %>">All Time</a>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" data-datatable="true">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>User</th>
+              <th>Points</th>
+              <th>Best Score</th>
+              <th>Attempts</th>
+              <th>Average</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (entries && entries.length > 0) { %>
+              <% entries.forEach(function(entry) { %>
+                <tr>
+                  <td><strong>#<%= entry.rank %></strong></td>
+                  <td>
+                    <div class="fw-semibold"><%= entry.user.name || entry.user.username %></div>
+                    <small class="text-muted"><%= entry.user.username %></small>
+                  </td>
+                  <td><%= entry.totalScore %></td>
+                  <td><%= entry.bestScore %>%</td>
+                  <td><%= entry.totalAttempts %></td>
+                  <td><%= entry.averageScore %>%</td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="6" class="text-center text-muted py-5">No leaderboard data available yet.</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

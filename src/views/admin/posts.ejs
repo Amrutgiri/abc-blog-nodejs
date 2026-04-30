@@ -1,0 +1,97 @@
+
+
+<div class="posts-content">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <a href="/admin/posts/new" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>New Post
+      </a>
+    </div>
+    <div>
+      <div class="btn-group">
+        <a href="/admin/posts" class="btn btn-outline-secondary <%= !status ? 'active' : '' %>">All</a>
+        <a href="/admin/posts?status=published" class="btn btn-outline-secondary <%= status === 'published' ? 'active' : '' %>">Published</a>
+        <a href="/admin/posts?status=draft" class="btn btn-outline-secondary <%= status === 'draft' ? 'active' : '' %>">Drafts</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0" data-datatable="true" data-datatable-paging="false">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Author</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Views</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (posts && posts.length > 0) { %>
+              <% posts.forEach(function(post) { %>
+                <tr>
+                  <td>
+                    <a href="/admin/posts/<%= post._id %>" class="text-decoration-none fw-semibold"><%= post.title %></a>
+                  </td>
+                  <td><%= post.author ? post.author.username : '-' %></td>
+                  <td><%= post.category ? post.category.name : '-' %></td>
+                  <td>
+                    <span class="badge bg-<%= post.status === 'published' ? 'success' : post.status === 'draft' ? 'warning' : 'secondary' %>"><%= post.status %></span>
+                  </td>
+                  <td><%= post.views %></td>
+                  <td><%= new Date(post.createdAt).toLocaleDateString() %></td>
+                  <td>
+                    <div class="btn-group btn-group-sm">
+                      <a href="/admin/posts/<%= post._id %>" class="btn btn-outline-primary" title="Edit">
+                        <i class="bi bi-pencil"></i>
+                      </a>
+                      <a href="/blog/<%= post.slug %>" class="btn btn-outline-secondary" title="View" target="_blank">
+                        <i class="bi bi-eye"></i>
+                      </a>
+                      <button class="btn btn-outline-danger btn-delete" data-id="<%= post._id %>" title="Delete">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="7" class="text-center text-muted py-4">No posts found</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <% if (totalPages > 1) { %>
+    <nav aria-label="Posts pagination" class="mt-4">
+      <ul class="pagination justify-content-center">
+        <% if (page > 1) { %>
+          <li class="page-item">
+            <a class="page-link" href="?page=<%= page - 1 %>">Previous</a>
+          </li>
+        <% } %>
+        <% for (var i = 1; i <= totalPages; i++) { %>
+          <li class="page-item <%= page === i ? 'active' : '' %>">
+            <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+          </li>
+        <% } %>
+        <% if (page < totalPages) { %>
+          <li class="page-item">
+            <a class="page-link" href="?page=<%= page + 1 %>">Next</a>
+          </li>
+        <% } %>
+      </ul>
+    </nav>
+  <% } %>
+</div>
+
+<form id="deleteForm" method="POST" style="display: none;"></form>

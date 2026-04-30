@@ -1,0 +1,62 @@
+<div class="container py-5">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <h1 class="h3 fw-bold mb-1">My Attempts</h1>
+      <p class="text-muted mb-0">Review your quiz history and performance.</p>
+    </div>
+    <a href="/dashboard" class="btn btn-outline-primary">Back to Dashboard</a>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0" data-datatable="true" data-datatable-paging="false">
+          <thead>
+            <tr>
+              <th>Quiz</th>
+              <th>Score</th>
+              <th>Accuracy</th>
+              <th>Points</th>
+              <th>Time Taken</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (attempts && attempts.length > 0) { %>
+              <% attempts.forEach(function(attempt) { %>
+                <tr>
+                  <td><a href="/quizzes/<%= attempt.quiz.slug %>" class="text-decoration-none"><%= attempt.quiz.title %></a></td>
+                  <td><%= attempt.score %>/<%= attempt.totalQuestions %></td>
+                  <td><%= attempt.percentage %>%</td>
+                  <td><%= attempt.pointsEarned || (attempt.score * 10) %></td>
+                  <td><%= Math.max(1, Math.round((attempt.timeTaken || 0) / 60)) %> min</td>
+                  <td><%= new Date(attempt.submittedAt).toLocaleString() %></td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="6" class="text-center text-muted py-5">No attempts yet.</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <% if (totalPages > 1) { %>
+    <nav class="mt-4">
+      <ul class="pagination justify-content-center">
+        <% if (page > 1) { %>
+          <li class="page-item"><a class="page-link" href="?page=<%= page - 1 %>">Previous</a></li>
+        <% } %>
+        <% for (var i = 1; i <= totalPages; i++) { %>
+          <li class="page-item <%= page === i ? 'active' : '' %>"><a class="page-link" href="?page=<%= i %>"><%= i %></a></li>
+        <% } %>
+        <% if (page < totalPages) { %>
+          <li class="page-item"><a class="page-link" href="?page=<%= page + 1 %>">Next</a></li>
+        <% } %>
+      </ul>
+    </nav>
+  <% } %>
+</div>

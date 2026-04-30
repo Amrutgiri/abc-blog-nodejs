@@ -1,0 +1,122 @@
+<%
+  const attemptLabels = (data.charts.attemptLabels || []);
+  const attemptValues = (data.charts.attemptValues || []);
+  const scoreLabels = (data.charts.scoreLabels || []);
+  const scoreValues = (data.charts.scoreValues || []);
+%>
+
+<div class="profile-dashboard py-5">
+  <div class="container">
+    <div class="row g-4 mb-4">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body p-4 p-md-5">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+              <div>
+                <p class="text-muted mb-1">Profile Dashboard</p>
+                <h1 class="h3 fw-bold mb-1"><%= data.user.name || data.user.username %></h1>
+                <p class="text-muted mb-0"><%= data.user.email %></p>
+              </div>
+              <div class="text-end">
+                <div class="badge bg-primary mb-2"><%= (data.summary.badges && data.summary.badges.length > 0) ? data.summary.badges[data.summary.badges.length - 1] : 'Beginner' %></div>
+                <div class="small text-muted">Current streak: <strong><%= data.summary.currentStreak %></strong> days</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body p-4">
+            <h2 class="h6 text-uppercase text-muted">Points</h2>
+            <div class="display-5 fw-bold text-primary"><%= data.summary.totalPoints %></div>
+            <p class="text-muted mb-0">Earned from correct answers and quiz consistency.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-md-3"><div class="stat-card bg-white rounded-4 p-4 h-100"><p class="text-muted mb-1">Quizzes Attempted</p><h3 class="mb-0"><%= data.summary.totalAttempts %></h3></div></div>
+      <div class="col-md-3"><div class="stat-card bg-white rounded-4 p-4 h-100"><p class="text-muted mb-1">Average Score</p><h3 class="mb-0"><%= data.summary.averageScore %>%</h3></div></div>
+      <div class="col-md-3"><div class="stat-card bg-white rounded-4 p-4 h-100"><p class="text-muted mb-1">Best Score</p><h3 class="mb-0"><%= data.summary.bestScore %>%</h3></div></div>
+      <div class="col-md-3"><div class="stat-card bg-white rounded-4 p-4 h-100"><p class="text-muted mb-1">Longest Streak</p><h3 class="mb-0"><%= data.summary.longestStreak %></h3></div></div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white">
+            <h5 class="mb-0">Performance Charts</h5>
+          </div>
+          <div class="card-body">
+            <canvas id="profileProgressChart" height="120" data-attempt-labels="<%= encodeURIComponent(JSON.stringify(attemptLabels)) %>" data-attempt-values="<%= encodeURIComponent(JSON.stringify(attemptValues)) %>" data-score-labels="<%= encodeURIComponent(JSON.stringify(scoreLabels)) %>" data-score-values="<%= encodeURIComponent(JSON.stringify(scoreValues)) %>"></canvas>
+          </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Recent Attempts</h5>
+            <a href="/profile/attempts" class="btn btn-sm btn-outline-primary">View all</a>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0" data-datatable="true">
+                <thead>
+                  <tr>
+                    <th>Quiz</th>
+                    <th>Score</th>
+                    <th>Accuracy</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (data.attempts && data.attempts.length > 0) { %>
+                    <% data.attempts.forEach(function(attempt) { %>
+                      <tr>
+                        <td><a href="/quizzes/<%= attempt.quiz.slug %>" class="text-decoration-none"><%= attempt.quiz.title %></a></td>
+                        <td><%= attempt.score %>/<%= attempt.totalQuestions %></td>
+                        <td><%= attempt.percentage %>%</td>
+                        <td><%= new Date(attempt.submittedAt).toLocaleDateString() %></td>
+                      </tr>
+                    <% }); %>
+                  <% } else { %>
+                    <tr>
+                      <td colspan="4" class="text-center text-muted py-4">No attempts yet.</td>
+                    </tr>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-body">
+            <h5 class="mb-3">Badges</h5>
+            <div class="d-flex flex-wrap gap-2">
+              <% (data.summary.badges || ['Beginner']).forEach(function(badge) { %>
+                <span class="badge bg-light text-dark border"><%= badge %></span>
+              <% }); %>
+            </div>
+          </div>
+        </div>
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <h5 class="mb-3">Quick Actions</h5>
+            <div class="d-grid gap-2">
+              <a href="/quizzes" class="btn btn-primary">Take a Quiz</a>
+              <a href="/leaderboard" class="btn btn-outline-primary">Leaderboard</a>
+              <a href="/profile/attempts" class="btn btn-outline-secondary">My Attempts</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="/js/profile-dashboard.js"></script>

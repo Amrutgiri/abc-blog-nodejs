@@ -1,0 +1,117 @@
+
+
+<% if (featuredPost) { %>
+<section class="hero-section py-5">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6 order-lg-1 order-2">
+        <div class="hero-content">
+          <span class="badge bg-primary mb-3">Featured</span>
+          <h1 class="display-4 fw-bold mb-3"><%= featuredPost.title %></h1>
+          <p class="lead mb-4"><%= featuredPost.excerpt || 'Discover expert insights and tips to boost your aptitude skills.' %></p>
+          <div class="d-flex align-items-center gap-3 mb-4">
+            <% if (featuredPost.author) { %>
+              <div class="d-flex align-items-center gap-2">
+                <div class="author-avatar">
+                  <img src="<%= featuredPost.author.avatar || '/images/default-avatar.png' %>" alt="<%= featuredPost.author.username %>" class="rounded-circle" width="40" height="40">
+                </div>
+                <span class="text-muted"><%= featuredPost.author.username %></span>
+              </div>
+            <% } %>
+            <span class="text-muted"><%= featuredPost.publishedAt ? new Date(featuredPost.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '' %></span>
+          </div>
+          <a href="/blog/<%= featuredPost.slug %>" class="btn btn-primary btn-lg">Read More</a>
+        </div>
+      </div>
+      <div class="col-lg-6 order-lg-2 order-1 mb-4 mb-lg-0">
+        <img src="<%= featuredPost.featuredImage || '/images/hero-default.jpg' %>" alt="<%= featuredPost.title %>" class="img-fluid rounded-3 shadow-lg" loading="lazy">
+      </div>
+    </div>
+  </div>
+</section>
+<% } %>
+
+<section class="categories-section py-5 bg-light">
+  <div class="container">
+    <h2 class="mb-4 fw-bold">Browse Categories</h2>
+    <div class="row g-3">
+      <% if (categories && categories.length > 0) { %>
+        <% categories.forEach(function(category) { %>
+          <div class="col-6 col-md-4 col-lg-2">
+            <a href="/category/<%= category.slug %>" class="text-decoration-none">
+              <div class="category-card text-center p-3 rounded-3 h-100 bg-white shadow-sm">
+                <div class="category-icon mb-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#1D6655" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                </div>
+                <h6 class="mb-1 text-dark"><%= category.name %></h6>
+                <small class="text-muted"><%= category.postCount || 0 %> posts</small>
+              </div>
+            </a>
+          </div>
+        <% }); %>
+      <% } else { %>
+        <div class="col-6 col-md-4 col-lg-2">
+          <a href="#" class="text-decoration-none">
+            <div class="category-card text-center p-3 rounded-3 h-100 bg-white shadow-sm">
+              <h6 class="mb-1 text-dark">Aptitude</h6>
+              <small class="text-muted">0 posts</small>
+            </div>
+          </a>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<section class="recent-posts py-5">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="mb-0 fw-bold">Recent Articles</h2>
+      <a href="/blog" class="btn btn-outline-primary">View All</a>
+    </div>
+    <div class="row g-4">
+      <% if (recentPosts && recentPosts.length > 0) { %>
+        <% recentPosts.forEach(function(post) { %>
+          <div class="col-md-6 col-lg-4">
+            <article class="blog-card card h-100 border-0 shadow-sm">
+              <img src="<%= post.featuredImage || '/images/placeholder.jpg' %>" class="card-img-top" alt="<%= post.title %>" loading="lazy">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <% if (post.category) { %>
+                    <a href="/category/<%= post.category.slug %>" class="badge bg-primary text-decoration-none"><%= post.category.name %></a>
+                  <% } %>
+                  <small class="text-muted"><%= post.views %> views</small>
+                </div>
+                <h5 class="card-title mb-2">
+                  <a href="/blog/<%= post.slug %>" class="text-decoration-none text-dark"><%= post.title %></a>
+                </h5>
+                <p class="card-text text-muted mb-3"><%= post.excerpt ? post.excerpt.substring(0, 100) + '...' : '' %></p>
+                <div class="d-flex align-items-center gap-2">
+                  <% if (post.author) { %>
+                    <img src="<%= post.author.avatar || '/images/default-avatar.png' %>" alt="<%= post.author.username %>" class="rounded-circle" width="24" height="24">
+                    <small class="text-muted"><%= post.author.username %></small>
+                  <% } %>
+                  <span class="text-muted ms-auto"><%= post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '' %></span>
+                </div>
+              </div>
+            </article>
+          </div>
+        <% }); %>
+      <% } else { %>
+        <div class="col-12">
+          <div class="text-center py-5">
+            <h4 class="text-muted">No posts yet. Check back soon!</h4>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section py-5 bg-primary text-white">
+  <div class="container text-center">
+    <h2 class="mb-3 fw-bold">Ready to Boost Your Skills?</h2>
+    <p class="mb-4">Join thousands of learners improving their aptitude and reasoning skills.</p>
+    <a href="/blog" class="btn btn-light btn-lg">Start Learning</a>
+  </div>
+</section>

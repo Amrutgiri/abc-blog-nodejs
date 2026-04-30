@@ -1,0 +1,232 @@
+<%
+  const chartLabels = (chartData || []).map(function(item) {
+    return `${item._id.month}/${item._id.day}`;
+  });
+  const chartValues = (chartData || []).map(function(item) {
+    return item.views;
+  });
+%>
+
+<div class="dashboard-content">
+  <div class="row g-4 mb-4">
+    <div class="col-md-3">
+      <div class="stat-card bg-white shadow-sm rounded-3 p-4 h-100">
+        <p class="text-muted mb-1">Total Posts</p>
+        <h3 class="mb-0 fw-bold"><%= stats.totalPosts %></h3>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card bg-white shadow-sm rounded-3 p-4 h-100">
+        <p class="text-muted mb-1">Published</p>
+        <h3 class="mb-0 fw-bold"><%= stats.publishedPosts %></h3>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card bg-white shadow-sm rounded-3 p-4 h-100">
+        <p class="text-muted mb-1">Views</p>
+        <h3 class="mb-0 fw-bold"><%= stats.totalViews %></h3>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card bg-white shadow-sm rounded-3 p-4 h-100">
+        <p class="text-muted mb-1">Subscribers</p>
+        <h3 class="mb-0 fw-bold"><%= stats.totalSubscribers %></h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="stat-card bg-white shadow-sm rounded-3 p-4 h-100">
+        <p class="text-muted mb-1">Categories</p>
+        <h4 class="mb-0 fw-bold"><%= stats.totalCategories %></h4>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card bg-white shadow-sm rounded-3 p-4 h-100">
+        <p class="text-muted mb-1">Quizzes</p>
+        <h4 class="mb-0 fw-bold"><%= typeof totalQuizzes !== 'undefined' ? totalQuizzes : 0 %></h4>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card bg-white shadow-sm rounded-3 p-4 h-100">
+        <p class="text-muted mb-1">Users</p>
+        <h4 class="mb-0 fw-bold"><%= typeof totalUsers !== 'undefined' ? totalUsers : 0 %></h4>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Quiz Attempts</h5>
+          <a href="/admin/quizzes" class="btn btn-sm btn-outline-primary">Manage Quizzes</a>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0" data-datatable="true">
+              <thead>
+                <tr>
+                  <th>Quiz</th>
+                  <th>Score</th>
+                  <th>%</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (typeof topQuizAttempts !== 'undefined' && topQuizAttempts && topQuizAttempts.length > 0) { %>
+                  <% topQuizAttempts.forEach(function(attempt) { %>
+                    <tr>
+                      <td><%= attempt.quiz ? attempt.quiz.title : '-' %></td>
+                      <td><%= attempt.score %>/<%= attempt.totalQuestions %></td>
+                      <td><%= attempt.percentage %>%</td>
+                    </tr>
+                  <% }); %>
+                <% } else { %>
+                  <tr>
+                    <td colspan="3" class="text-center text-muted py-4">No quiz attempts yet</td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Quiz Quick Actions</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <a href="/admin/quizzes/new" class="btn btn-primary">
+              <i class="bi bi-plus-circle me-2"></i>New Quiz
+            </a>
+            <a href="/quizzes" class="btn btn-outline-primary" target="_blank">
+              <i class="bi bi-patch-question me-2"></i>View Public Quizzes
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mt-0 mb-4">
+    <div class="col-md-4">
+      <div class="stat-card bg-white shadow-sm rounded-3 p-4 h-100">
+        <p class="text-muted mb-1">Tags</p>
+        <h4 class="mb-0 fw-bold"><%= stats.totalTags %></h4>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card bg-white shadow-sm rounded-3 p-4 h-100">
+        <p class="text-muted mb-1">Scheduled</p>
+        <h4 class="mb-0 fw-bold"><%= stats.scheduledPosts %></h4>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card bg-white shadow-sm rounded-3 p-4 h-100">
+        <p class="text-muted mb-1">Quiz Attempts</p>
+        <h4 class="mb-0 fw-bold"><%= typeof topQuizAttempts !== 'undefined' && topQuizAttempts ? topQuizAttempts.length : 0 %></h4>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mt-1">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Views by day</h5>
+          <span class="text-muted small">Last 14 days</span>
+        </div>
+        <div class="card-body">
+          <canvas id="viewsChart" height="110" data-labels="<%= encodeURIComponent(JSON.stringify(chartLabels)) %>" data-values="<%= encodeURIComponent(JSON.stringify(chartValues)) %>"></canvas>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Top Posts</h5>
+          <a href="/admin/posts" class="btn btn-sm btn-outline-primary">Manage Posts</a>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0" data-datatable="true">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Views</th>
+                  <th>Published</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (topPosts && topPosts.length > 0) { %>
+                  <% topPosts.forEach(function(post) { %>
+                    <tr>
+                      <td>
+                        <a href="/admin/posts/<%= post._id %>" class="text-decoration-none"><%= post.title %></a>
+                      </td>
+                      <td><%= post.views %></td>
+                      <td><%= post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : '-' %></td>
+                    </tr>
+                  <% }); %>
+                <% } else { %>
+                  <tr>
+                    <td colspan="3" class="text-center text-muted py-4">No view data yet</td>
+                  </tr>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Quick Actions</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <a href="/admin/posts/new" class="btn btn-primary">
+              <i class="bi bi-plus-circle me-2"></i>New Post
+            </a>
+            <a href="/admin/categories" class="btn btn-outline-primary">
+              <i class="bi bi-folder me-2"></i>Manage Categories
+            </a>
+            <a href="/admin/tags" class="btn btn-outline-primary">
+              <i class="bi bi-tags me-2"></i>Manage Tags
+            </a>
+            <a href="/admin/users" class="btn btn-outline-primary">
+              <i class="bi bi-people me-2"></i>Manage Users
+            </a>
+            <a href="/" class="btn btn-outline-secondary" target="_blank">
+              <i class="bi bi-box-arrow-up-right me-2"></i>View Site
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Bulk Upload</h5>
+        </div>
+        <div class="card-body">
+          <form method="POST" action="/admin/posts/import">
+            <%- include('../partials/csrf') %>
+            <div class="mb-3">
+              <label class="form-label">Posts JSON</label>
+              <textarea class="form-control" name="posts" rows="8" placeholder='[{"title":"Sample post","excerpt":"Short intro"}]' data-validate-json="true" data-json-message="Please paste valid JSON for the bulk import."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Import Posts</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="/js/admin-dashboard.js"></script>

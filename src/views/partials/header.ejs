@@ -1,0 +1,68 @@
+<header class="site-header">
+  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <span class="brand-text">Aptitude Booster Club</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto align-items-center">
+          <li class="nav-item">
+            <a class="nav-link" href="/">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/blog">Blog</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/quizzes">Quizzes</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/leaderboard">Leaderboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/about">About</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/contact">Contact</a>
+          </li>
+          <% if (typeof user !== 'undefined' && user) { %>
+            <li class="nav-item">
+              <a class="nav-link" href="/dashboard">Dashboard</a>
+            </li>
+            <% if (user.role === 'admin' || user.role === 'author') { %>
+              <li class="nav-item">
+                <a class="nav-link" href="/admin">Admin</a>
+              </li>
+            <% } %>
+          <% } %>
+          <li class="nav-item ms-lg-3">
+            <form class="d-flex position-relative" action="/search" method="GET" data-search-autocomplete>
+              <input class="form-control form-control-sm" type="search" name="q" placeholder="Search..." aria-label="Search" autocomplete="off">
+              <button class="btn btn-sm btn-outline-primary ms-2" type="submit">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              </button>
+              <div class="search-suggestions"></div>
+            </form>
+          </li>
+          <% if (typeof user !== 'undefined' && user) { %>
+            <li class="nav-item ms-lg-3">
+              <form method="POST" action="/auth/logout" class="d-inline">
+                <%- include('./csrf') %>
+                <button class="btn btn-primary btn-sm" type="submit">Logout</button>
+              </form>
+            </li>
+          <% } else { %>
+            <li class="nav-item ms-lg-3">
+              <a class="btn btn-outline-primary btn-sm" href="/auth/login">Login</a>
+            </li>
+            <li class="nav-item ms-lg-2">
+              <a class="btn btn-primary btn-sm" href="/auth/register">Register</a>
+            </li>
+          <% } %>
+        </ul>
+      </div>
+    </div>
+  </nav>
+</header>

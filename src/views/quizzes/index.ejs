@@ -1,0 +1,58 @@
+<div class="page-header py-5 bg-light">
+  <div class="container">
+    <h1 class="fw-bold">Aptitude Quizzes</h1>
+    <p class="text-muted mb-0">Practice quantitative, logical, and verbal aptitude with timed quizzes.</p>
+  </div>
+</div>
+
+<section class="quiz-list py-5">
+  <div class="container">
+    <div class="d-flex flex-wrap gap-2 mb-4">
+      <a href="/quizzes" class="btn btn-outline-primary <%= !category ? 'active' : '' %>">All</a>
+      <% Object.keys(categoryLabels).forEach(function(key) { %>
+        <a href="/quizzes?category=<%= key %>" class="btn btn-outline-primary <%= category === key ? 'active' : '' %>"><%= categoryLabels[key] %></a>
+      <% }); %>
+    </div>
+
+    <div class="row g-4">
+      <% if (quizzes && quizzes.length > 0) { %>
+        <% quizzes.forEach(function(quiz) { %>
+          <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm quiz-card">
+              <div class="card-body">
+                <span class="badge bg-primary mb-3"><%= categoryLabels[quiz.category] %></span>
+                <h4 class="card-title"><a href="/quizzes/<%= quiz.slug %>" class="text-decoration-none text-dark"><%= quiz.title %></a></h4>
+                <p class="text-muted"><%= quiz.description || 'Practice with this quiz to sharpen your skills.' %></p>
+                <div class="d-flex justify-content-between text-muted small mb-3">
+                  <span><%= quiz.totalQuestions %> questions</span>
+                  <span><%= quiz.duration %> min</span>
+                </div>
+                <a href="/quizzes/<%= quiz.slug %>" class="btn btn-primary w-100">View Quiz</a>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      <% } else { %>
+        <div class="col-12">
+          <div class="alert alert-info">No quizzes published yet.</div>
+        </div>
+      <% } %>
+    </div>
+
+    <% if (totalPages > 1) { %>
+      <nav class="mt-5">
+        <ul class="pagination justify-content-center">
+          <% if (page > 1) { %>
+            <li class="page-item"><a class="page-link" href="?page=<%= page - 1 %><%= category ? '&category=' + category : '' %>">Previous</a></li>
+          <% } %>
+          <% for (var i = 1; i <= totalPages; i++) { %>
+            <li class="page-item <%= page === i ? 'active' : '' %>"><a class="page-link" href="?page=<%= i %><%= category ? '&category=' + category : '' %>"><%= i %></a></li>
+          <% } %>
+          <% if (page < totalPages) { %>
+            <li class="page-item"><a class="page-link" href="?page=<%= page + 1 %><%= category ? '&category=' + category : '' %>">Next</a></li>
+          <% } %>
+        </ul>
+      </nav>
+    <% } %>
+  </div>
+</section>

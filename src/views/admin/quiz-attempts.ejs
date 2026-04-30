@@ -1,0 +1,71 @@
+<div class="quiz-admin-page">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <h1 class="h4 mb-1"><%= quiz.title %> Attempts</h1>
+      <p class="text-muted mb-0">Track quiz performance and response history.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="/admin/quizzes/<%= quiz._id %>/edit" class="btn btn-outline-primary">Edit Quiz</a>
+      <a href="/admin/quizzes" class="btn btn-outline-secondary">Back</a>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="stat-card bg-white rounded-4 p-4 h-100">
+        <p class="text-muted mb-1">Attempts</p>
+        <h3 class="mb-0 fw-bold"><%= analytics.totalAttempts %></h3>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card bg-white rounded-4 p-4 h-100">
+        <p class="text-muted mb-1">Average Score</p>
+        <h3 class="mb-0 fw-bold"><%= Math.round(analytics.averageScore || 0) %>%</h3>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card bg-white rounded-4 p-4 h-100">
+        <p class="text-muted mb-1">Duration</p>
+        <h3 class="mb-0 fw-bold"><%= quiz.duration %> min</h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" data-datatable="true">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Score</th>
+              <th>Percentage</th>
+              <th>Time Taken</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (attempts && attempts.length > 0) { %>
+              <% attempts.forEach(function(attempt) { %>
+                <tr>
+                  <td>
+                    <strong><%= attempt.user ? attempt.user.username : 'Guest' %></strong><br>
+                    <small class="text-muted"><%= attempt.user ? attempt.user.email : '-' %></small>
+                  </td>
+                  <td><%= attempt.score %>/<%= attempt.totalQuestions %></td>
+                  <td><%= attempt.percentage %>%</td>
+                  <td><%= Math.max(1, Math.round((attempt.timeTaken || 0) / 60)) %> min</td>
+                  <td><%= new Date(attempt.submittedAt || attempt.createdAt).toLocaleString() %></td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="5" class="text-center text-muted py-5">No attempts recorded yet.</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

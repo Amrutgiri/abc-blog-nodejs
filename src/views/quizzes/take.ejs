@@ -1,0 +1,100 @@
+<div class="quiz-attempt-page py-5">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+              <p class="text-muted mb-1">Timed Quiz</p>
+              <h1 class="h3 mb-0"><%= quiz.title %></h1>
+            </div>
+            <div class="quiz-timer-wrap text-end">
+              <div class="quiz-timer" id="quizTimer" data-duration="<%= durationSeconds %>">--:--</div>
+              <small class="text-muted">Time remaining</small>
+            </div>
+          </div>
+        </div>
+
+        <form
+          id="quizAttemptForm"
+          method="POST"
+          action="/quizzes/<%= quiz.slug %>/take"
+          class="quiz-form"
+          data-slug="<%= quiz.slug %>"
+          data-duration-seconds="<%= durationSeconds %>"
+          data-started-at="<%= startedAt %>"
+          data-total-questions="<%= questions.length %>">
+          <%- include('../partials/csrf') %>
+          <input type="hidden" name="startedAt" id="startedAt" value="<%= startedAt %>">
+          <input type="hidden" name="quizSlug" value="<%= quiz.slug %>">
+
+          <div class="progress mb-4" style="height: 10px;">
+            <div class="progress-bar bg-primary" id="quizProgressBar" style="width: 0%"></div>
+          </div>
+
+          <div class="alert alert-warning d-flex justify-content-between align-items-center quiz-progress-summary">
+            <span><strong id="answeredCount">0</strong> of <%= questions.length %> questions answered</span>
+            <span><strong id="questionCount">0</strong>% complete</span>
+          </div>
+
+          <div class="quiz-questions">
+            <% questions.forEach(function(question, index) { %>
+              <section class="card border-0 shadow-sm mb-4 quiz-question-card" data-question-id="<%= question._id %>">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                    <div>
+                      <p class="text-muted mb-1">Question <%= index + 1 %></p>
+                      <h2 class="h5 mb-0"><%= question.question %></h2>
+                    </div>
+                    <span class="badge bg-light text-dark">MCQ</span>
+                  </div>
+
+                  <div class="quiz-options">
+                    <% question.options.forEach(function(option, optionIndex) { %>
+                      <div class="form-check quiz-option">
+                        <input class="form-check-input" type="radio" name="answers[<%= question._id %>]" id="q<%= index %>o<%= optionIndex %>" value="<%= option %>" <%= optionIndex === 0 ? 'required' : '' %>>
+                        <label class="form-check-label" for="q<%= index %>o<%= optionIndex %>"><%= option %></label>
+                      </div>
+                    <% }); %>
+                  </div>
+                </div>
+              </section>
+            <% }); %>
+          </div>
+
+          <div class="sticky-bottom-actions">
+            <div class="d-flex flex-wrap gap-2">
+              <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-send me-2"></i>Submit Quiz
+              </button>
+              <a href="/quizzes/<%= quiz.slug %>" class="btn btn-outline-secondary btn-lg">Back to Quiz Details</a>
+            </div>
+            <small class="text-muted">Your answers are saved in this browser while you are taking the quiz.</small>
+          </div>
+        </form>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm quiz-side-card">
+          <div class="card-body">
+            <h5 class="mb-3">Quiz Summary</h5>
+            <ul class="list-unstyled mb-0 quiz-summary-list">
+              <li><strong><%= questions.length %></strong> total questions</li>
+              <li><strong><%= quiz.duration %></strong> minutes duration</li>
+              <li><strong><%= quiz.randomizeQuestions ? 'Yes' : 'No' %></strong> question shuffle</li>
+              <li><strong><%= quiz.negativeMarking ? 'Enabled' : 'Disabled' %></strong> negative marking</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mt-4">
+          <div class="card-body">
+            <h5 class="mb-3">Instructions</h5>
+            <p class="text-muted mb-0"><%= quiz.instructions || 'Read each question carefully. The quiz will auto-submit when the timer ends.' %></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="/js/quiz.js"></script>
