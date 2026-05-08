@@ -1,0 +1,106 @@
+<div class="contacts-content">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <h1 class="h4 mb-1">Contact Messages</h1>
+      <p class="text-muted mb-0">Review inquiries sent from the public contact form.</p>
+    </div>
+    <div class="btn-group">
+      <a href="/admin/contacts" class="btn btn-outline-secondary <%= !status ? 'active' : '' %>">All</a>
+      <a href="/admin/contacts?status=unread" class="btn btn-outline-secondary <%= status === 'unread' ? 'active' : '' %>">Unread</a>
+      <a href="/admin/contacts?status=read" class="btn btn-outline-secondary <%= status === 'read' ? 'active' : '' %>">Read</a>
+      <a href="/admin/contacts?status=replied" class="btn btn-outline-secondary <%= status === 'replied' ? 'active' : '' %>">Replied</a>
+      <a href="/admin/contacts?status=archived" class="btn btn-outline-secondary <%= status === 'archived' ? 'active' : '' %>">Archived</a>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="stat-card bg-white shadow-sm rounded-3 p-4 h-100">
+        <p class="text-muted mb-1">Total</p>
+        <h3 class="mb-0 fw-bold"><%= contactStats ? contactStats.total : total %></h3>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card bg-white shadow-sm rounded-3 p-4 h-100">
+        <p class="text-muted mb-1">Unread</p>
+        <h3 class="mb-0 fw-bold"><%= contactStats ? contactStats.unread : 0 %></h3>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card bg-white shadow-sm rounded-3 p-4 h-100">
+        <p class="text-muted mb-1">Read</p>
+        <h3 class="mb-0 fw-bold"><%= contactStats ? contactStats.read : 0 %></h3>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card bg-white shadow-sm rounded-3 p-4 h-100">
+        <p class="text-muted mb-1">Replied</p>
+        <h3 class="mb-0 fw-bold"><%= contactStats ? contactStats.replied : 0 %></h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" data-datatable="true">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Message</th>
+              <th>Status</th>
+              <th>Received</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (messages && messages.length > 0) { %>
+              <% messages.forEach(function(message) { %>
+                <tr>
+                  <td class="fw-semibold"><%= message.name %></td>
+                  <td><a href="mailto:<%= message.email %>"><%= message.email %></a></td>
+                  <td><%= (message.message || '').substring(0, 90) %><%= (message.message || '').length > 90 ? '...' : '' %></td>
+                  <td>
+                    <span class="badge bg-<%= message.status === 'unread' ? 'warning text-dark' : message.status === 'replied' ? 'success' : message.status === 'archived' ? 'secondary' : 'info' %>">
+                      <%= message.status %>
+                    </span>
+                  </td>
+                  <td><%= message.createdAt ? new Date(message.createdAt).toLocaleString() : '-' %></td>
+                  <td class="text-end">
+                    <div class="btn-group btn-group-sm">
+                      <a href="/admin/contacts/<%= message._id %>" class="btn btn-outline-primary">View</a>
+                      <button type="button" class="btn btn-outline-danger btn-delete" data-type="contact" data-id="<%= message._id %>">Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="6" class="text-center text-muted py-5">No contact messages found.</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <% if (totalPages > 1) { %>
+    <nav class="mt-4">
+      <ul class="pagination justify-content-center">
+        <% if (page > 1) { %>
+          <li class="page-item"><a class="page-link" href="?page=<%= page - 1 %><%= status ? '&status=' + status : '' %>">Previous</a></li>
+        <% } %>
+        <% for (var i = 1; i <= totalPages; i++) { %>
+          <li class="page-item <%= page === i ? 'active' : '' %>">
+            <a class="page-link" href="?page=<%= i %><%= status ? '&status=' + status : '' %>"><%= i %></a>
+          </li>
+        <% } %>
+        <% if (page < totalPages) { %>
+          <li class="page-item"><a class="page-link" href="?page=<%= page + 1 %><%= status ? '&status=' + status : '' %>">Next</a></li>
+        <% } %>
+      </ul>
+    </nav>
+  <% } %>
+</div>

@@ -49,6 +49,13 @@
     progressBar.style.width = `${percent}%`;
   }
 
+  function syncSelectedStates() {
+    form.querySelectorAll('.quiz-option').forEach((option) => {
+      const input = option.querySelector('input[type="radio"]');
+      option.classList.toggle('is-selected', Boolean(input && input.checked));
+    });
+  }
+
   function syncLowTime(isLow) {
     timerEl.classList.toggle('is-low', isLow);
   }
@@ -63,6 +70,7 @@
       }
     });
     updateProgress();
+    syncSelectedStates();
   }
 
   form.addEventListener('change', (event) => {
@@ -74,6 +82,7 @@
       saved[match[1]] = target.value;
       saveAnswers(saved);
       updateProgress();
+      syncSelectedStates();
     }
   });
 

@@ -6,7 +6,7 @@ class ProfileController {
     try {
       const data = await UserProgressService.getDashboardData(req.session.user._id);
       const seo = SeoService.buildSeo(req, {
-        title: 'My Dashboard - Aptitude Booster Club',
+        title: SeoService.makePageTitle('My Dashboard'),
         description: 'Track your quiz progress, scores, and streaks.'
       });
 
@@ -32,7 +32,7 @@ class ProfileController {
         .limit(limit);
       const total = await QuizAttempt.countDocuments({ user: req.session.user._id });
       const seo = SeoService.buildSeo(req, {
-        title: 'My Attempts - Aptitude Booster Club',
+        title: SeoService.makePageTitle('My Attempts'),
         description: 'Review your quiz history and performance.'
       });
 
@@ -54,7 +54,7 @@ class ProfileController {
       const timeframe = ['daily', 'weekly', 'all'].includes(req.query.timeframe) ? req.query.timeframe : 'all';
       const entries = await LeaderboardService.getLeaderboard(timeframe);
       const seo = SeoService.buildSeo(req, {
-        title: 'Leaderboard - Aptitude Booster Club',
+        title: SeoService.makePageTitle('Leaderboard'),
         description: 'Compete on the aptitude quiz leaderboard.'
       });
 

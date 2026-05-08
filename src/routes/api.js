@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const { createRateLimiter } = require('../middleware/production');
+const { isAuthenticated, requireAdmin } = require('../middleware/auth');
 const { CloudinaryService } = require('../services');
 
 const router = express.Router();
@@ -20,7 +21,12 @@ const upload = multer({
   }
 });
 
-router.post('/upload', createRateLimiter({ windowMs: 60 * 60 * 1000, max: 30 }), upload.any(), async (req, res, next) => {
+router.post('/upload',
+  isAuthenticated,
+  requireAdmin,
+  createRateLimiter({ windowMs: 60 * 60 * 1000, max: 30 }),
+  upload.any(),
+  async (req, res, next) => {
   try {
     const file = (req.files && req.files[0]) || req.file || null;
     if (!file) {

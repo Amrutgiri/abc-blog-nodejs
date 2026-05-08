@@ -8,6 +8,7 @@ const PageView = require('./PageView');
 const Quiz = require('./Quiz');
 const QuizQuestion = require('./QuizQuestion');
 const QuizAttempt = require('./QuizAttempt');
+const ContactMessage = require('./ContactMessage');
 
 module.exports = {
   User,
@@ -19,5 +20,6 @@ module.exports = {
   PageView,
   Quiz,
   QuizQuestion,
-  QuizAttempt
+  QuizAttempt,
+  ContactMessage
 };

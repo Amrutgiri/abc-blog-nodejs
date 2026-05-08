@@ -19,8 +19,11 @@ const {
   cacheControl,
   attachViewLocals
 } = require('./src/middleware/production');
+const siteSettingsMiddleware = require('./src/middleware/siteSettings');
 const SitemapService = require('./src/services/SitemapService');
 const ScheduledPostService = require('./src/services/ScheduledPostService');
+const AdminController = require('./src/controllers/AdminController');
+const { isAuthenticated, requireAdmin } = require('./src/middleware/auth');
 
 const routes = require('./src/routes');
 const adminRoutes = require('./src/routes/admin');
@@ -31,6 +34,11 @@ const app = express();
 connectDB();
 
 app.disable('x-powered-by');
+
+const sessionSecret = process.env.SESSION_SECRET;
+if (!sessionSecret) {
+  throw new Error('SESSION_SECRET is required for secure sessions.');
+}
 
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
@@ -85,10 +93,8 @@ app.set('layout', 'layouts/main.ejs');
 app.set('layout extractScripts', true);
 app.set('layout extractStyles', true);
 
-app.use(seoMiddleware);
-
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'aptitude-booster-secret-key-2024',
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
@@ -102,6 +108,8 @@ app.use(session({
 
 app.use(flash());
 app.use(attachViewLocals);
+app.use(siteSettingsMiddleware);
+app.use(seoMiddleware);
 app.use(csrfProtection);
 app.use(createRateLimiter({ windowMs: 15 * 60 * 1000, max: 1000 }));
 
@@ -165,6 +173,18 @@ app.get('/images/:asset', (req, res, next) => {
 
 app.use('/api', apiRoutes);
 app.use('/', routes);
+app.get('/admin/contacts', isAuthenticated, requireAdmin, (req, res, next) => {
+  res.locals.currentPage = 'contacts';
+  return AdminController.contacts(req, res, next);
+});
+app.get('/admin/contacts/:id', isAuthenticated, requireAdmin, (req, res, next) => {
+  res.locals.currentPage = 'contacts';
+  return AdminController.showContact(req, res, next);
+});
+app.delete('/admin/contacts/:id', isAuthenticated, requireAdmin, (req, res, next) => {
+  res.locals.currentPage = 'contacts';
+  return AdminController.deleteContact(req, res, next);
+});
 app.use('/admin', adminRoutes);
 
 app.get('/sitemap.xml', async (req, res, next) => {

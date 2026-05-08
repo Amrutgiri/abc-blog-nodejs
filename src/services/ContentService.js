@@ -65,6 +65,36 @@ function summarizeText(text, maxLength = 160) {
   return `${clean.slice(0, maxLength).trim()}...`;
 }
 
+function hasRenderableContent(blocks) {
+  return blocks.some((block) => {
+    if (!block || !block.type || !block.data) return false;
+
+    if (block.type === 'paragraph' || block.type === 'header' || block.type === 'quote') {
+      return Boolean(String(block.data.text || '').trim());
+    }
+
+    if (block.type === 'code') {
+      return Boolean(String(block.data.code || '').trim());
+    }
+
+    if (block.type === 'list' && Array.isArray(block.data.items)) {
+      return block.data.items.some((item) => Boolean(String(item || '').trim()));
+    }
+
+    if (block.type === 'image') {
+      return Boolean(String(block.data.file?.url || block.data.url || '').trim());
+    }
+
+    return true;
+  });
+}
+
+function isEditorContentValid(content) {
+  const data = normalizeContent(content);
+  const blocks = Array.isArray(data.blocks) ? data.blocks : [];
+  return blocks.length > 0 && hasRenderableContent(blocks);
+}
+
 function sanitizeEditorContent(content) {
   const data = normalizeContent(content);
   return {
@@ -96,5 +126,7 @@ module.exports = {
   calculateReadingTime,
   buildToc,
   summarizeText,
+  hasRenderableContent,
+  isEditorContentValid,
   sanitizeEditorContent
 };

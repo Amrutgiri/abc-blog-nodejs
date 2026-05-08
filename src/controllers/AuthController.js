@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const slugify = require('slugify');
 const { validationResult } = require('express-validator');
 const UserRepository = require('../repositories/UserRepository');
-const { SeoService, EmailService } = require('../services');
+const { SeoService, EmailService, ContactService } = require('../services');
 
 function safeRedirect(value, fallback = '/dashboard') {
   if (!value) return fallback;
@@ -12,11 +12,12 @@ function safeRedirect(value, fallback = '/dashboard') {
 }
 
 function renderAuth(res, view, data = {}, path = '/auth') {
+  const pageTitle = data.pageTitle ? SeoService.makePageTitle(data.pageTitle) : SeoService.makePageTitle('');
   return res.render(view, {
-    pageTitle: data.pageTitle || 'Aptitude Booster Club',
+    pageTitle,
     seo: data.seo || SeoService.buildSeo({ originalUrl: '/auth' }, {
-      title: data.pageTitle || 'Aptitude Booster Club',
-      description: 'Aptitude Booster Club user authentication.',
+      title: pageTitle,
+      description: 'User authentication for the website.',
       path
     }),
     layout: 'layouts/main.ejs',
@@ -37,7 +38,8 @@ class AuthController {
   async showLogin(req, res) {
     renderAuth(res, 'auth/login', {
       pageTitle: 'Login',
-      redirectTo: safeRedirect(req.query.redirect)
+      redirectTo: safeRedirect(req.query.redirect),
+      formData: { email: '' }
     }, '/auth/login');
   }
 
@@ -49,17 +51,35 @@ class AuthController {
         return renderAuth(res, 'auth/login', {
           pageTitle: 'Login',
           error: errors.array()[0].msg,
-          redirectTo
+          redirectTo,
+          formData: {
+            email: String(req.body.email || '').trim()
+          }
         }, '/auth/login');
       }
 
       const { email, password } = req.body;
-      const user = await UserRepository.comparePassword(email, password);
+      const result = await UserRepository.authenticate(email, password);
+      if (result.inactive) {
+        return renderAuth(res, 'auth/login', {
+          pageTitle: 'Login',
+          error: 'Your account is inactive. Please contact the admin.',
+          redirectTo,
+          formData: {
+            email: String(req.body.email || '').trim()
+          }
+        }, '/auth/login');
+      }
+
+      const user = result.user;
       if (!user) {
         return renderAuth(res, 'auth/login', {
           pageTitle: 'Login',
           error: 'Invalid email or password.',
-          redirectTo
+          redirectTo,
+          formData: {
+            email: String(req.body.email || '').trim()
+          }
         }, '/auth/login');
       }
 
@@ -88,7 +108,9 @@ class AuthController {
   async showRegister(req, res) {
     renderAuth(res, 'auth/register', {
       pageTitle: 'Create Account',
-      redirectTo: safeRedirect(req.query.redirect)
+      redirectTo: safeRedirect(req.query.redirect),
+      formData: { name: '', email: '' },
+      disposableDomains: ContactService.disposableDomains
     }, '/auth/register');
   }
 
@@ -100,25 +122,48 @@ class AuthController {
         return renderAuth(res, 'auth/register', {
           pageTitle: 'Create Account',
           error: errors.array()[0].msg,
-          redirectTo
+          redirectTo,
+          formData: {
+            name: String(req.body.name || '').trim(),
+            email: String(req.body.email || '').trim()
+          },
+          disposableDomains: ContactService.disposableDomains
         }, '/auth/register');
       }
 
       const { name, email, password } = req.body;
+      if (ContactService.isDisposableEmail(email)) {
+        return renderAuth(res, 'auth/register', {
+          pageTitle: 'Create Account',
+          error: 'Disposable email addresses are not allowed.',
+          redirectTo,
+          formData: {
+            name: String(name || '').trim(),
+            email: String(email || '').trim()
+          },
+          disposableDomains: ContactService.disposableDomains
+        }, '/auth/register');
+      }
+
       const existing = await UserRepository.findByEmail(email);
       if (existing) {
         return renderAuth(res, 'auth/register', {
           pageTitle: 'Create Account',
           error: 'An account with this email already exists.',
-          redirectTo
+          redirectTo,
+          formData: {
+            name: String(name || '').trim(),
+            email: String(email || '').trim()
+          },
+          disposableDomains: ContactService.disposableDomains
         }, '/auth/register');
       }
 
       const username = makeUsername(name, email);
       const user = await UserRepository.create({
-        name,
+        name: String(name || '').trim(),
         username,
-        email,
+        email: String(email || '').trim().toLowerCase(),
         password,
         role: 'member',
         badges: ['Beginner']

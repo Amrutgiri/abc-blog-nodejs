@@ -42,11 +42,25 @@ class UserRepository {
   }
 
   async comparePassword(email, password) {
+    const result = await this.authenticate(email, password);
+    return result.user;
+  }
+
+  async authenticate(email, password) {
     const user = await User.findOne({ email }).select('+password');
-    if (!user || !user.isActive) return null;
+    if (!user) {
+      return { user: null, inactive: false };
+    }
+    if (!user.isActive) {
+      return { user: null, inactive: true };
+    }
+
     const isMatch = await user.comparePassword(password);
-    if (!isMatch) return null;
-    return user;
+    if (!isMatch) {
+      return { user: null, inactive: false };
+    }
+
+    return { user };
   }
 
   async findByResetToken(token) {

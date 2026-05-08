@@ -63,7 +63,7 @@
           <h5 class="mb-0">Quiz Attempts</h5>
           <a href="/admin/quizzes" class="btn btn-sm btn-outline-primary">Manage Quizzes</a>
         </div>
-        <div class="card-body p-0">
+        <div class="card-body p-3">
           <div class="table-responsive">
             <table class="table table-hover mb-0" data-datatable="true">
               <thead>
@@ -133,6 +133,21 @@
     </div>
   </div>
 
+  <div class="row g-4 mb-4">
+    <div class="col-md-6">
+      <div class="stat-card bg-white shadow-sm rounded-3 p-4 h-100">
+        <p class="text-muted mb-1">Contact Messages</p>
+        <h4 class="mb-0 fw-bold"><%= stats.totalContacts || 0 %></h4>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="stat-card bg-white shadow-sm rounded-3 p-4 h-100">
+        <p class="text-muted mb-1">Unread Contacts</p>
+        <h4 class="mb-0 fw-bold"><%= stats.unreadContacts || 0 %></h4>
+      </div>
+    </div>
+  </div>
+
   <div class="row g-4 mt-1">
     <div class="col-lg-8">
       <div class="card border-0 shadow-sm mb-4">
@@ -150,7 +165,7 @@
           <h5 class="mb-0">Top Posts</h5>
           <a href="/admin/posts" class="btn btn-sm btn-outline-primary">Manage Posts</a>
         </div>
-        <div class="card-body p-0">
+        <div class="card-body p-3">
           <div class="table-responsive">
             <table class="table table-hover mb-0" data-datatable="true">
               <thead>
@@ -201,6 +216,15 @@
             </a>
             <a href="/admin/users" class="btn btn-outline-primary">
               <i class="bi bi-people me-2"></i>Manage Users
+            </a>
+            <a href="/admin/subscribers" class="btn btn-outline-primary">
+              <i class="bi bi-send-check me-2"></i>Manage Subscribers
+            </a>
+            <a href="/admin/settings" class="btn btn-outline-primary">
+              <i class="bi bi-gear me-2"></i>Site Settings
+            </a>
+            <a href="/admin/contacts" class="btn btn-outline-primary">
+              <i class="bi bi-envelope me-2"></i>View Contact Messages
             </a>
             <a href="/" class="btn btn-outline-secondary" target="_blank">
               <i class="bi bi-box-arrow-up-right me-2"></i>View Site

@@ -51,10 +51,10 @@
 
                   <div class="quiz-options">
                     <% question.options.forEach(function(option, optionIndex) { %>
-                      <div class="form-check quiz-option">
+                      <label class="quiz-option form-check" for="q<%= index %>o<%= optionIndex %>">
                         <input class="form-check-input" type="radio" name="answers[<%= question._id %>]" id="q<%= index %>o<%= optionIndex %>" value="<%= option %>" <%= optionIndex === 0 ? 'required' : '' %>>
-                        <label class="form-check-label" for="q<%= index %>o<%= optionIndex %>"><%= option %></label>
-                      </div>
+                        <span class="quiz-option-text"><%= option %></span>
+                      </label>
                     <% }); %>
                   </div>
                 </div>

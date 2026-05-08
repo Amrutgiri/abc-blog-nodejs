@@ -1,6 +1,6 @@
 <footer class="admin-footer">
   <div>
-    <span>&copy; <%= new Date().getFullYear() %> Aptitude Booster Club</span>
+    <span>&copy; <%= new Date().getFullYear() %> <%= (typeof siteSettings !== 'undefined' && siteSettings && siteSettings.siteName) || 'Aptitude Booster Club' %></span>
     <span class="footer-separator">&middot;</span>
     <span>Admin console</span>
   </div>

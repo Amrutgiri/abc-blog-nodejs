@@ -16,7 +16,7 @@
           <div class="card-body">
             <div class="mb-3">
               <label class="form-label">Title</label>
-              <input type="text" name="title" class="form-control" value="<%= quiz ? quiz.title : '' %>" required>
+              <input type="text" name="title" class="form-control" value="<%= quiz ? quiz.title : '' %>" required minlength="3" maxlength="200" data-trim-required="true" data-trim-message="Quiz title is required.">
             </div>
             <div class="mb-3">
               <label class="form-label">Description</label>
@@ -56,7 +56,12 @@
           </div>
           <div class="card-body">
             <div class="mb-3">
-              <label class="form-label">Bulk Import JSON</label>
+              <div class="d-flex justify-content-between align-items-center gap-2">
+                <label class="form-label mb-0">Bulk Import JSON</label>
+                <a href="/downloads/quiz-questions-sample.json" class="btn btn-sm btn-outline-secondary" download>
+                  Download sample JSON
+                </a>
+              </div>
               <textarea class="form-control" name="bulkQuestions" rows="5" placeholder='[{"question":"...","options":["A","B","C","D"],"correctAnswer":"A","explanation":"..."}]' data-validate-json="true" data-json-message="Please paste valid JSON in the bulk import field."></textarea>
               <small class="text-muted">If this field is filled, it will override the manual question entries.</small>
             </div>

@@ -1,0 +1,60 @@
+<div class="contact-detail-content">
+  <%
+    const siteBrand = typeof siteSettings !== 'undefined' && siteSettings ? siteSettings : {};
+  %>
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <h1 class="h4 mb-1">Contact Message</h1>
+      <p class="text-muted mb-0">View the full message and follow up if needed.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="/admin/contacts" class="btn btn-outline-secondary">Back to Messages</a>
+      <button type="button" class="btn btn-outline-danger btn-delete" data-type="contact" data-id="<%= contact._id %>" data-redirect="/admin/contacts">Delete</button>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+          <h5 class="mb-3">Sender Details</h5>
+          <p class="mb-2"><strong>Name:</strong> <%= contact.name %></p>
+          <p class="mb-2"><strong>Email:</strong> <a href="mailto:<%= contact.email %>"><%= contact.email %></a></p>
+          <p class="mb-2"><strong>Status:</strong> <span class="badge bg-<%= contact.status === 'unread' ? 'warning text-dark' : contact.status === 'replied' ? 'success' : contact.status === 'archived' ? 'secondary' : 'info' %>"><%= contact.status %></span></p>
+          <p class="mb-2"><strong>Received:</strong> <%= contact.createdAt ? new Date(contact.createdAt).toLocaleString() : '-' %></p>
+          <p class="mb-0"><strong>Source:</strong> <%= contact.source || 'website-contact' %></p>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h5 class="mb-3">Quick Actions</h5>
+          <a href="mailto:<%= contact.email %>?subject=Re: Contact from <%= encodeURIComponent(siteBrand.siteName || 'Aptitude Booster Club') %>" class="btn btn-primary w-100 mb-2">Reply by Email</a>
+          <button type="button" class="btn btn-outline-danger w-100 btn-delete" data-type="contact" data-id="<%= contact._id %>" data-redirect="/admin/contacts">Delete Message</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Message</h5>
+          <span class="text-muted small">ID: <%= contact._id %></span>
+        </div>
+        <div class="card-body">
+          <div class="p-3 rounded-3 bg-light border">
+            <p class="mb-0" style="white-space: pre-wrap;"><%= contact.message %></p>
+          </div>
+          <% if (contact.adminNotes) { %>
+            <div class="mt-4">
+              <h6 class="mb-2">Admin Notes</h6>
+              <div class="p-3 rounded-3 bg-white border">
+                <p class="mb-0" style="white-space: pre-wrap;"><%= contact.adminNotes %></p>
+              </div>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

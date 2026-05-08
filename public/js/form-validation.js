@@ -59,6 +59,113 @@
     }
   }
 
+  function validateTrimRequiredField(field) {
+    if (!field || !field.dataset.trimRequired) return true;
+    if (String(field.value || '').trim()) {
+      clearCustomValidity(field);
+      return true;
+    }
+    return markInvalid(field, field.dataset.trimMessage || `${getFieldLabel(field)} is required.`);
+  }
+
+  function validateUrlField(field) {
+    if (!field || !field.dataset.validateUrl) return true;
+    const raw = String(field.value || '').trim();
+    if (!raw) {
+      clearCustomValidity(field);
+      return true;
+    }
+
+    try {
+      const url = new URL(raw);
+      if (!['http:', 'https:'].includes(url.protocol)) {
+        throw new Error('Invalid protocol');
+      }
+      clearCustomValidity(field);
+      return true;
+    } catch (error) {
+      return markInvalid(field, field.dataset.urlMessage || `${getFieldLabel(field)} must be a valid URL.`);
+    }
+  }
+
+  function validateAssetUrlField(field) {
+    if (!field || !field.dataset.validateAssetUrl) return true;
+    const raw = String(field.value || '').trim();
+    if (!raw) {
+      clearCustomValidity(field);
+      return true;
+    }
+
+    if (raw.startsWith('/')) {
+      clearCustomValidity(field);
+      return true;
+    }
+
+    try {
+      const url = new URL(raw);
+      if (!['http:', 'https:'].includes(url.protocol)) {
+        throw new Error('Invalid protocol');
+      }
+      clearCustomValidity(field);
+      return true;
+    } catch (error) {
+      return markInvalid(field, field.dataset.assetUrlMessage || `${getFieldLabel(field)} must be a valid URL or site-relative path.`);
+    }
+  }
+
+  function containsHtmlMarkup(value) {
+    const raw = String(value || '');
+    return /[<>]/.test(raw) || /<\/?\s*script\b/i.test(raw);
+  }
+
+  function validateNoHtmlTagsField(field) {
+    if (!field || !field.dataset.noHtmlTags) return true;
+    const raw = String(field.value || '').trim();
+    if (!raw) {
+      clearCustomValidity(field);
+      return true;
+    }
+
+    if (containsHtmlMarkup(raw)) {
+      return markInvalid(field, field.dataset.noHtmlMessage || `${getFieldLabel(field)} cannot contain HTML or script tags.`);
+    }
+
+    clearCustomValidity(field);
+    return true;
+  }
+
+  function isDisposableEmail(value, field) {
+    const raw = String(value || '').trim().toLowerCase();
+    const domain = raw.includes('@') ? raw.split('@').pop() : '';
+    if (!domain) return false;
+
+    const domainList = String(field?.dataset.disposableDomains || '')
+      .split(',')
+      .map((item) => item.trim().toLowerCase())
+      .filter(Boolean);
+
+    if (domainList.includes(domain)) return true;
+
+    const fragments = ['mailinator', 'tempmail', 'temp-mail', '10minutemail', 'guerrillamail', 'trashmail', 'dispostable', 'yopmail', 'getnada', 'fakeinbox', 'throwawaymail', 'maildrop'];
+    return fragments.some((fragment) => domain.includes(fragment));
+  }
+
+  function validateDisposableEmailField(field) {
+    if (!field || !field.dataset.validateDisposableEmail) return true;
+    const raw = String(field.value || '').trim();
+    if (!raw) {
+      clearCustomValidity(field);
+      return true;
+    }
+
+    if (isDisposableEmail(raw, field)) {
+      return markInvalid(field, field.dataset.disposableMessage || `${getFieldLabel(field)} must not use a disposable email address.`);
+    }
+
+    clearCustomValidity(field);
+    return true;
+  }
+
   function hasEditorContent(blocks) {
     return blocks.some((block) => {
       if (!block || !block.type || !block.data) return false;
@@ -131,6 +238,11 @@
 
       if (!validateMatchField(field)) valid = false;
       if (!validateJsonField(field)) valid = false;
+      if (!validateTrimRequiredField(field)) valid = false;
+      if (!validateUrlField(field)) valid = false;
+      if (!validateAssetUrlField(field)) valid = false;
+      if (!validateNoHtmlTagsField(field)) valid = false;
+      if (!validateDisposableEmailField(field)) valid = false;
       if (!validateEditorContentField(field)) valid = false;
     });
 
@@ -155,6 +267,26 @@
 
     if (field.dataset.validateJson) {
       validateJsonField(field);
+    }
+
+    if (field.dataset.trimRequired) {
+      validateTrimRequiredField(field);
+    }
+
+    if (field.dataset.validateUrl) {
+      validateUrlField(field);
+    }
+
+    if (field.dataset.validateAssetUrl) {
+      validateAssetUrlField(field);
+    }
+
+    if (field.dataset.noHtmlTags) {
+      validateNoHtmlTagsField(field);
+    }
+
+    if (field.dataset.validateDisposableEmail) {
+      validateDisposableEmailField(field);
     }
 
     if (field.dataset.validateEditorContent) {
@@ -204,6 +336,11 @@
     validateForm,
     validateMatchField,
     validateJsonField,
+    validateTrimRequiredField,
+    validateUrlField,
+    validateAssetUrlField,
+    validateNoHtmlTagsField,
+    validateDisposableEmailField,
     validateEditorContentField,
     clearCustomValidity
   };

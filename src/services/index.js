@@ -10,6 +10,8 @@ const QuizService = require('./QuizService');
 const UserProgressService = require('./UserProgressService');
 const LeaderboardService = require('./LeaderboardService');
 const CloudinaryService = require('./CloudinaryService');
+const ContactService = require('./ContactService');
+const SiteSettingsService = require('./SiteSettingsService');
 
 module.exports = {
   EmailService,
@@ -23,5 +25,7 @@ module.exports = {
   QuizService,
   UserProgressService,
   LeaderboardService,
-  CloudinaryService
+  CloudinaryService,
+  ContactService,
+  SiteSettingsService
 };

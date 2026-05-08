@@ -1,5 +1,33 @@
 
 
+<%
+  const currentData = typeof formData !== 'undefined' && formData ? formData : {
+    title: post ? post.title : '',
+    excerpt: post ? (post.excerpt || '') : '',
+    content: post && post.content ? post.content : { blocks: [{ type: 'paragraph', data: { text: '' } }] },
+    featuredImage: post ? (post.featuredImage || '') : '',
+    category: post && post.category ? post.category._id.toString() : '',
+    tags: post && post.tags ? post.tags.map(t => t._id.toString()) : [],
+    status: post ? post.status : 'draft',
+    scheduledAt: post && post.scheduledAt ? new Date(post.scheduledAt).toISOString().slice(0, 16) : '',
+    featured: Boolean(post && post.featured),
+    seo: {
+      metaTitle: post && post.seo ? (post.seo.metaTitle || '') : '',
+      metaDescription: post && post.seo ? (post.seo.metaDescription || '') : '',
+      metaKeywords: post && post.seo ? (post.seo.metaKeywords || '') : ''
+    }
+  };
+  const validationMap = typeof validationErrors !== 'undefined' && validationErrors
+    ? validationErrors.reduce((acc, error) => {
+        if (!acc[error.path]) acc[error.path] = error.msg;
+        return acc;
+      }, {})
+    : (typeof fieldErrorMap !== 'undefined' && fieldErrorMap ? fieldErrorMap : {});
+  const getFieldError = (name) => validationMap[name] || '';
+  const hasError = (name) => Boolean(getFieldError(name));
+  const tagIds = Array.isArray(currentData.tags) ? currentData.tags.map(t => String(t)) : [];
+%>
+
 <div class="post-form-content">
   <form method="POST" action="<%= post ? '/admin/posts/' + post._id + '?_method=PUT' : '/admin/posts' %>" id="postForm">
     <%- include('../partials/csrf') %>
@@ -12,19 +40,28 @@
           <div class="card-body">
             <div class="mb-3">
               <label for="title" class="form-label">Title</label>
-              <input type="text" class="form-control" id="title" name="title" value="<%= post ? post.title : '' %>" required maxlength="200">
+              <input type="text" class="form-control <%= hasError('title') ? 'is-invalid' : '' %>" id="title" name="title" value="<%= currentData.title %>" required minlength="3" maxlength="200" data-trim-required="true" data-trim-message="Title is required.">
+              <% if (hasError('title')) { %>
+                <div class="invalid-feedback"><%= getFieldError('title') %></div>
+              <% } %>
             </div>
 
             <div class="mb-3">
               <label for="excerpt" class="form-label">Excerpt</label>
-              <textarea class="form-control" id="excerpt" name="excerpt" rows="3" maxlength="500"><%= post ? (post.excerpt || '') : '' %></textarea>
+              <textarea class="form-control <%= hasError('excerpt') ? 'is-invalid' : '' %>" id="excerpt" name="excerpt" rows="3" maxlength="500"><%= currentData.excerpt %></textarea>
+              <% if (hasError('excerpt')) { %>
+                <div class="invalid-feedback"><%= getFieldError('excerpt') %></div>
+              <% } %>
             </div>
 
             <div class="mb-3">
               <label class="form-label">Content</label>
               <div id="editorjs" aria-label="Post content editor"></div>
-              <input type="hidden" name="content" id="content" value="<%= post && post.content ? JSON.stringify(post.content) : JSON.stringify({ blocks: [{ type: 'paragraph', data: { text: '' } }] }) %>" data-validate-editor-content="true" data-editor-message="Please add post content before saving.">
-              <small class="text-muted d-block mt-2">Use the editor below to build the post content. The content is saved as structured JSON.</small>
+              <input type="hidden" name="content" id="content" value="<%= JSON.stringify(currentData.content) %>" data-validate-editor-content="true" data-editor-message="Please add post content before saving.">
+              <% if (hasError('content')) { %>
+                <div class="invalid-feedback d-block"><%= getFieldError('content') %></div>
+              <% } %>
+              <small class="text-muted d-block mt-2">Use TeX syntax for formulas, for example <code>$d$</code>, <code>\frac{d}{40}</code>, or <code>$$a^2+b^2=c^2$$</code>. The content is saved as structured JSON and rendered with MathJax on the post page.</small>
             </div>
           </div>
         </div>
@@ -36,17 +73,26 @@
           <div class="card-body">
             <div class="mb-3">
               <label for="seo[metaTitle]" class="form-label">Meta Title</label>
-              <input type="text" class="form-control" id="seo[metaTitle]" name="seo[metaTitle]" value="<%= post && post.seo ? post.seo.metaTitle : '' %>" maxlength="70">
+              <input type="text" class="form-control <%= hasError('seo.metaTitle') ? 'is-invalid' : '' %>" id="seo[metaTitle]" name="seo[metaTitle]" value="<%= currentData.seo.metaTitle %>" maxlength="70">
+              <% if (hasError('seo.metaTitle')) { %>
+                <div class="invalid-feedback"><%= getFieldError('seo.metaTitle') %></div>
+              <% } %>
               <small class="text-muted">Recommended: 50-60 characters</small>
             </div>
             <div class="mb-3">
               <label for="seo[metaDescription]" class="form-label">Meta Description</label>
-              <textarea class="form-control" id="seo[metaDescription]" name="seo[metaDescription]" rows="2" maxlength="160"><%= post && post.seo ? post.seo.metaDescription : '' %></textarea>
+              <textarea class="form-control <%= hasError('seo.metaDescription') ? 'is-invalid' : '' %>" id="seo[metaDescription]" name="seo[metaDescription]" rows="2" maxlength="160"><%= currentData.seo.metaDescription %></textarea>
+              <% if (hasError('seo.metaDescription')) { %>
+                <div class="invalid-feedback"><%= getFieldError('seo.metaDescription') %></div>
+              <% } %>
               <small class="text-muted">Recommended: 150-160 characters</small>
             </div>
             <div class="mb-3">
               <label for="seo[metaKeywords]" class="form-label">Meta Keywords</label>
-              <input type="text" class="form-control" id="seo[metaKeywords]" name="seo[metaKeywords]" value="<%= post && post.seo ? post.seo.metaKeywords : '' %>" placeholder="keyword1, keyword2, keyword3">
+              <input type="text" class="form-control <%= hasError('seo.metaKeywords') ? 'is-invalid' : '' %>" id="seo[metaKeywords]" name="seo[metaKeywords]" value="<%= currentData.seo.metaKeywords %>" placeholder="keyword1, keyword2, keyword3">
+              <% if (hasError('seo.metaKeywords')) { %>
+                <div class="invalid-feedback"><%= getFieldError('seo.metaKeywords') %></div>
+              <% } %>
             </div>
           </div>
         </div>
@@ -60,20 +106,27 @@
           <div class="card-body">
             <div class="mb-3">
               <label for="status" class="form-label">Status</label>
-              <select class="form-select" id="status" name="status" required>
-                <option value="draft" <%= post && post.status === 'draft' ? 'selected' : '' %>>Draft</option>
-                <option value="published" <%= post && post.status === 'published' ? 'selected' : '' %>>Published</option>
-                <option value="scheduled" <%= post && post.status === 'scheduled' ? 'selected' : '' %>>Scheduled</option>
+              <select class="form-select <%= hasError('status') ? 'is-invalid' : '' %>" id="status" name="status" required>
+                <option value="draft" <%= currentData.status === 'draft' ? 'selected' : '' %>>Draft</option>
+                <option value="published" <%= currentData.status === 'published' ? 'selected' : '' %>>Published</option>
+                <option value="scheduled" <%= currentData.status === 'scheduled' ? 'selected' : '' %>>Scheduled</option>
+                <option value="archived" <%= currentData.status === 'archived' ? 'selected' : '' %>>Archived</option>
               </select>
+              <% if (hasError('status')) { %>
+                <div class="invalid-feedback"><%= getFieldError('status') %></div>
+              <% } %>
             </div>
 
             <div class="mb-3">
               <label for="scheduledAt" class="form-label">Schedule Publish</label>
-              <input type="datetime-local" class="form-control" id="scheduledAt" name="scheduledAt" value="<%= post && post.scheduledAt ? new Date(post.scheduledAt).toISOString().slice(0, 16) : '' %>">
+              <input type="datetime-local" class="form-control <%= hasError('scheduledAt') ? 'is-invalid' : '' %>" id="scheduledAt" name="scheduledAt" value="<%= currentData.scheduledAt %>">
+              <% if (hasError('scheduledAt')) { %>
+                <div class="invalid-feedback"><%= getFieldError('scheduledAt') %></div>
+              <% } %>
             </div>
 
             <div class="form-check mb-3">
-              <input class="form-check-input" type="checkbox" id="featured" name="featured" <%= post && post.featured ? 'checked' : '' %>>
+              <input class="form-check-input" type="checkbox" id="featured" name="featured" <%= currentData.featured ? 'checked' : '' %>>
               <label class="form-check-label" for="featured">Featured post</label>
             </div>
 
@@ -91,12 +144,15 @@
             <h5 class="mb-0">Category</h5>
           </div>
             <div class="card-body">
-              <select class="form-select" id="category" name="category" required>
+              <select class="form-select <%= hasError('category') ? 'is-invalid' : '' %>" id="category" name="category" required>
                 <option value="">Select Category</option>
                 <% categories.forEach(function(cat) { %>
-                  <option value="<%= cat._id %>" <%= post && post.category && post.category._id.toString() === cat._id.toString() ? 'selected' : '' %>><%= cat.name %></option>
+                  <option value="<%= cat._id %>" <%= String(currentData.category || '') === String(cat._id) ? 'selected' : '' %>><%= cat.name %></option>
                 <% }); %>
               </select>
+              <% if (hasError('category')) { %>
+                <div class="invalid-feedback"><%= getFieldError('category') %></div>
+              <% } %>
           </div>
         </div>
 
@@ -107,10 +163,13 @@
           <div class="card-body">
             <select class="form-select" id="tags" name="tags" multiple>
               <% tags.forEach(function(tag) { %>
-                <option value="<%= tag._id %>" <%= post && post.tags && post.tags.some(t => t._id.toString() === tag._id.toString()) ? 'selected' : '' %>><%= tag.name %></option>
+                <option value="<%= tag._id %>" <%= tagIds.includes(String(tag._id)) ? 'selected' : '' %>><%= tag.name %></option>
               <% }); %>
             </select>
             <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+            <% if (hasError('tags')) { %>
+              <div class="invalid-feedback d-block"><%= getFieldError('tags') %></div>
+            <% } %>
           </div>
         </div>
 
@@ -119,7 +178,10 @@
             <h5 class="mb-0">Featured Image</h5>
           </div>
           <div class="card-body">
-            <input type="text" class="form-control mb-2" id="featuredImage" name="featuredImage" value="<%= post ? post.featuredImage : '' %>" placeholder="Image URL will appear here after upload">
+            <input type="url" class="form-control mb-2 <%= hasError('featuredImage') ? 'is-invalid' : '' %>" id="featuredImage" name="featuredImage" value="<%= currentData.featuredImage %>" placeholder="Image URL will appear here after upload" data-validate-url="true" data-url-message="Featured image must be a valid URL.">
+            <% if (hasError('featuredImage')) { %>
+              <div class="invalid-feedback d-block"><%= getFieldError('featuredImage') %></div>
+            <% } %>
             <input type="file" class="form-control mb-2" id="featuredImageFile" accept="image/*">
             <div class="d-flex gap-2 align-items-center mb-2">
               <button type="button" class="btn btn-outline-primary btn-sm" id="uploadFeaturedImage">
@@ -128,7 +190,7 @@
               <small class="text-muted" id="featuredImageStatus">Choose an image file to upload.</small>
             </div>
             <img
-              src="<%= post && post.featuredImage ? post.featuredImage : '/images/placeholder.jpg' %>"
+              src="<%= currentData.featuredImage ? currentData.featuredImage : '/images/placeholder.jpg' %>"
               alt="Featured"
               class="img-fluid rounded"
               id="featuredImagePreview"
@@ -141,7 +203,7 @@
 </div>
 
 <div id="postEditorConfig"
-  data-existing="<%= encodeURIComponent(JSON.stringify(post && post.content ? post.content : null)) %>"
+  data-existing="<%= encodeURIComponent(JSON.stringify(currentData.content || null)) %>"
   data-csrf="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.28.0"></script>

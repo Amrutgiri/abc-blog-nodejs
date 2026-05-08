@@ -3,7 +3,9 @@ const PostRepository = require('../repositories/PostRepository');
 const QuizRepository = require('../repositories/QuizRepository');
 const CategoryRepository = require('../repositories/CategoryRepository');
 const TagRepository = require('../repositories/TagRepository');
-const { EmailService, AnalyticsService, ContentService } = require('../services');
+const ContactRepository = require('../repositories/ContactRepository');
+const { validationResult } = require('express-validator');
+const { EmailService, AnalyticsService, ContentService, NewsletterService, SiteSettingsService } = require('../services');
 const slugify = require('slugify');
 
 function renderAdmin(res, view, data = {}) {
@@ -20,17 +22,100 @@ function renderPlain(res, view, data = {}) {
   });
 }
 
+function buildValidationMap(errors) {
+  return errors.reduce((acc, error) => {
+    if (!acc[error.path]) {
+      acc[error.path] = error.msg;
+    }
+    return acc;
+  }, {});
+}
+
+function parseEditorContent(value, fallback = { blocks: [{ type: 'paragraph', data: { text: '' } }] }) {
+  if (!value) return fallback;
+
+  try {
+    const parsed = typeof value === 'string' ? JSON.parse(value) : value;
+    return ContentService.normalizeContent(parsed);
+  } catch (error) {
+    return fallback;
+  }
+}
+
+function normalizeArray(value) {
+  if (!value) return [];
+  return Array.isArray(value) ? value.filter(Boolean) : [value].filter(Boolean);
+}
+
+function buildSettingsFormData(settings = {}, body = null) {
+  const source = body || settings || {};
+  return {
+    siteName: source.siteName || '',
+    siteDescription: source.siteDescription || '',
+    siteLogoUrl: source.siteLogoUrl || '',
+    faviconUrl: source.faviconUrl || '',
+    footerAbout: source.footerAbout || '',
+    whatsappChannelUrl: source.whatsappChannelUrl || '',
+    facebookUrl: source.facebookUrl || '',
+    instagramUrl: source.instagramUrl || '',
+    xUrl: source.xUrl || '',
+    youtubeUrl: source.youtubeUrl || '',
+    linkedinUrl: source.linkedinUrl || '',
+    contactEmail: source.contactEmail || '',
+    supportPhone: source.supportPhone || '',
+    copyrightText: source.copyrightText || ''
+  };
+}
+
+function buildPostFormData(post = null, body = {}) {
+  const postCategoryId = post?.category?._id ? String(post.category._id) : '';
+  const postTagIds = Array.isArray(post?.tags) ? post.tags.map(tag => String(tag._id || tag)) : [];
+  const bodySeo = body.seo || {};
+  const contentFallback = post?.content || { blocks: [{ type: 'paragraph', data: { text: '' } }] };
+
+  return {
+    title: body.title ?? post?.title ?? '',
+    excerpt: body.excerpt ?? post?.excerpt ?? '',
+    content: parseEditorContent(body.content ?? post?.content, contentFallback),
+    featuredImage: body.featuredImage ?? post?.featuredImage ?? '',
+    category: body.category ?? postCategoryId,
+    tags: normalizeArray(body.tags).length > 0 ? normalizeArray(body.tags) : postTagIds,
+    status: body.status ?? post?.status ?? 'draft',
+    scheduledAt: body.scheduledAt ?? (post?.scheduledAt ? new Date(post.scheduledAt).toISOString().slice(0, 16) : ''),
+    featured: body.featured === 'on' || body.featured === true || Boolean(post?.featured),
+    seo: {
+      metaTitle: bodySeo.metaTitle ?? post?.seo?.metaTitle ?? '',
+      metaDescription: bodySeo.metaDescription ?? post?.seo?.metaDescription ?? '',
+      metaKeywords: bodySeo.metaKeywords ?? post?.seo?.metaKeywords ?? ''
+    }
+  };
+}
+
 class AdminController {
   async login(req, res, next) {
     try {
       if (req.method === 'POST') {
         const { email, password } = req.body;
-        const user = await UserRepository.comparePassword(email, password);
+        const result = await UserRepository.authenticate(email, password);
+        if (result.inactive) {
+          return renderPlain(res.status(403), 'admin/login', {
+            error: 'Your account is inactive. Please contact the administrator.'
+          });
+        }
+
+        const user = result.user;
         if (!user) {
           return renderPlain(res.status(401), 'admin/login', {
             error: 'Invalid email or password'
           });
         }
+
+        if (user.role !== 'admin') {
+          return renderPlain(res.status(403), 'admin/login', {
+            error: 'Admin access is restricted to administrators only.'
+          });
+        }
+
         req.session.user = {
           _id: user._id,
           username: user.username,
@@ -53,10 +138,11 @@ class AdminController {
   async dashboard(req, res, next) {
     try {
       const User = require('../models/User');
-      const [summary, recentPosts, totalUsers] = await Promise.all([
+      const [summary, recentPosts, totalUsers, contactStats] = await Promise.all([
         AnalyticsService.getDashboardSummary(),
         PostRepository.findRecent(5),
-        User.countDocuments()
+        User.countDocuments(),
+        ContactRepository.getCounts()
       ]);
       const quizSummary = await Promise.all([
         QuizRepository.findAll({ limit: 1 }),
@@ -65,14 +151,19 @@ class AdminController {
 
       renderAdmin(res, 'admin/dashboard', {
         pageTitle: 'Dashboard',
-        stats: summary,
         recentPosts,
         totalViews: summary.totalViews,
         topPosts: summary.topPosts,
         chartData: summary.dailyViews,
         totalQuizzes: quizSummary[0].total,
         topQuizAttempts: quizSummary[1],
-        totalUsers
+        totalUsers,
+        contactStats,
+        stats: {
+          ...summary,
+          totalContacts: contactStats.total,
+          unreadContacts: contactStats.unread
+        }
       });
     } catch (error) {
       next(error);
@@ -106,24 +197,43 @@ class AdminController {
   async newPost(req, res, next) {
     try {
       if (req.method === 'POST') {
-        const { title, content, excerpt, featuredImage, category, tags, status, seo } = req.body;
-        const scheduledAt = req.body.scheduledAt || null;
-        const featured = req.body.featured === 'on';
-        const slug = slugify(title, { lower: true, strict: true }) + '-' + Date.now();
-        const parsedContent = ContentService.sanitizeEditorContent(content);
+        const errors = validationResult(req);
+        const formData = buildPostFormData(null, req.body);
+
+        if (!errors.isEmpty()) {
+          const [categories, tags] = await Promise.all([
+            CategoryRepository.findAll(),
+            TagRepository.findAll()
+          ]);
+          const validationErrors = errors.array();
+          return renderAdmin(res, 'admin/post-form', {
+            pageTitle: 'New Post',
+            post: null,
+            categories,
+            tags,
+            formData,
+            validationErrors,
+            fieldErrorMap: buildValidationMap(validationErrors),
+            error: validationErrors[0]?.msg || 'Please fix the errors below.'
+          });
+        }
+
+        const slug = slugify(formData.title, { lower: true, strict: true }) + '-' + Date.now();
+        const parsedContent = ContentService.sanitizeEditorContent(formData.content);
+        const scheduledAt = formData.scheduledAt || null;
 
         const postData = {
-          title,
+          title: formData.title,
           slug,
           content: parsedContent,
-          excerpt,
-          featuredImage,
-          category,
-          tags: tags ? (Array.isArray(tags) ? tags : [tags]) : [],
-          status: status || 'draft',
+          excerpt: formData.excerpt,
+          featuredImage: formData.featuredImage,
+          category: formData.category,
+          tags: formData.tags,
+          status: formData.status || 'draft',
           author: req.session.user._id,
-          seo,
-          featured,
+          seo: formData.seo,
+          featured: formData.featured,
           scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
           readingTime: ContentService.calculateReadingTime(parsedContent),
           toc: ContentService.buildToc(parsedContent)
@@ -131,12 +241,26 @@ class AdminController {
 
         const post = await PostRepository.create(postData);
 
-        if (status === 'published') {
+        if (formData.status === 'published') {
+          const category = await CategoryRepository.findById(formData.category).catch(() => null);
           await EmailService.sendPostPublishedNotification(post, req.session.user);
+          await NewsletterService.sendAnnouncementToSubscribers({
+            kind: 'post',
+            title: post.title,
+            description: post.excerpt || 'A new article has been published.',
+            ctaUrl: `${(process.env.SITE_URL || 'http://localhost:3000').replace(/\/+$/, '')}/blog/${post.slug}`,
+            ctaLabel: 'Read Article',
+            highlights: [
+              `Category: ${category?.name || 'Uncategorized'}`,
+              `Reading time: ${post.readingTime || 1} min`,
+              `Author: ${req.session.user.username}`
+            ],
+            footnote: 'We hope you enjoy this new article.'
+          }).catch(() => null);
         }
 
         req.flash('success', 'Post created successfully');
-        return res.redirect(`/admin/posts/${post._id}/edit`);
+        return res.redirect('/admin/posts');
       }
 
       const [categories, tags] = await Promise.all([
@@ -148,7 +272,8 @@ class AdminController {
         pageTitle: 'New Post',
         post: null,
         categories,
-        tags
+        tags,
+        formData: buildPostFormData()
       });
     } catch (error) {
       next(error);
@@ -163,34 +288,67 @@ class AdminController {
       }
 
       if (req.method === 'PUT' || req.method === 'POST') {
-        const { title, content, excerpt, featuredImage, category, tags, status, seo } = req.body;
-        const scheduledAt = req.body.scheduledAt || null;
-        const featured = req.body.featured === 'on';
-        const parsedContent = ContentService.sanitizeEditorContent(content);
+        const errors = validationResult(req);
+        const formData = buildPostFormData(post.toObject(), req.body);
+
+        if (!errors.isEmpty()) {
+          const [categories, tags] = await Promise.all([
+            CategoryRepository.findAll(),
+            TagRepository.findAll()
+          ]);
+          const validationErrors = errors.array();
+          return renderAdmin(res, 'admin/post-form', {
+            pageTitle: 'Edit Post',
+            post,
+            categories,
+            tags,
+            formData,
+            validationErrors,
+            fieldErrorMap: buildValidationMap(validationErrors),
+            error: validationErrors[0]?.msg || 'Please fix the errors below.'
+          });
+        }
+
+        const parsedContent = ContentService.sanitizeEditorContent(formData.content);
+        const scheduledAt = formData.scheduledAt || null;
 
         const postData = {
-          title,
+          title: formData.title,
           content: parsedContent,
-          excerpt,
-          featuredImage,
-          category,
-          tags: tags ? (Array.isArray(tags) ? tags : [tags]) : [],
-          status: status || post.status,
-          seo,
-          featured,
+          excerpt: formData.excerpt,
+          featuredImage: formData.featuredImage,
+          category: formData.category,
+          tags: formData.tags,
+          status: formData.status || post.status,
+          seo: formData.seo,
+          featured: formData.featured,
           scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
           readingTime: ContentService.calculateReadingTime(parsedContent),
           toc: ContentService.buildToc(parsedContent)
         };
 
-        if (status === 'published' && post.status !== 'published') {
+        if (formData.status === 'published' && post.status !== 'published') {
           postData.publishedAt = new Date();
         }
 
         await PostRepository.update(req.params.id, postData);
 
-        if (status === 'published' && post.status === 'draft') {
+        if (formData.status === 'published' && post.status === 'draft') {
+          const category = await CategoryRepository.findById(formData.category).catch(() => null);
           await EmailService.sendPostPublishedNotification(post, req.session.user);
+          await NewsletterService.sendAnnouncementToSubscribers({
+            kind: 'post',
+            title: formData.title,
+            description: formData.excerpt || 'A new article has been published.',
+            ctaUrl: `${(process.env.SITE_URL || 'http://localhost:3000').replace(/\/+$/, '')}/blog/${post.slug}`,
+            ctaLabel: 'Read Article',
+            highlights: [
+              `Category: ${category?.name || 'Uncategorized'}`,
+              `Reading time: ${ContentService.calculateReadingTime(parsedContent) || 1} min`,
+              `Author: ${req.session.user.username}`
+            ],
+            footnote: 'We hope you enjoy this updated article.'
+          }).catch(() => null);
         }
 
         req.flash('success', 'Post updated successfully');
@@ -206,7 +364,8 @@ class AdminController {
         pageTitle: 'Edit Post',
         post,
         categories,
-        tags
+        tags,
+        formData: buildPostFormData(post.toObject())
       });
     } catch (error) {
       next(error);
@@ -346,6 +505,150 @@ class AdminController {
     }
   }
 
+  async contacts(req, res, next) {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = 20;
+      const status = req.query.status || '';
+      const { messages, total, totalPages } = await ContactRepository.findAll({
+        page,
+        limit,
+        status: status || undefined
+      });
+      const contactStats = await ContactRepository.getCounts();
+
+      renderAdmin(res, 'admin/contacts', {
+        pageTitle: 'Contact Messages',
+        messages,
+        total,
+        page,
+        totalPages,
+        status,
+        contactStats
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async settings(req, res, next) {
+    try {
+      const currentSettings = await SiteSettingsService.getSettings();
+
+      if (req.method === 'POST') {
+        const errors = validationResult(req);
+        const formData = buildSettingsFormData(null, req.body);
+
+        if (!errors.isEmpty()) {
+          const validationErrors = errors.array();
+          return renderAdmin(res, 'admin/settings', {
+            pageTitle: 'Site Settings',
+            settings: currentSettings,
+            formData,
+            validationErrors,
+            fieldErrorMap: buildValidationMap(validationErrors),
+            error: validationErrors[0]?.msg || 'Please fix the errors below.'
+          });
+        }
+
+        await SiteSettingsService.saveSettings(formData);
+        req.flash('success', 'Site settings updated successfully.');
+        return res.redirect('/admin/settings');
+      }
+
+      return renderAdmin(res, 'admin/settings', {
+        pageTitle: 'Site Settings',
+        settings: currentSettings,
+        formData: buildSettingsFormData(currentSettings)
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async subscribers(req, res, next) {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = 20;
+      const status = req.query.status || '';
+      const query = req.query.q || '';
+
+      const [list, stats] = await Promise.all([
+        NewsletterService.listSubscribers({ page, limit, status, query }),
+        NewsletterService.getStats()
+      ]);
+
+      renderAdmin(res, 'admin/subscribers', {
+        pageTitle: 'Newsletter Subscribers',
+        subscribers: list.subscribers,
+        total: list.total,
+        page: list.page,
+        totalPages: list.totalPages,
+        status,
+        query,
+        stats
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async toggleSubscriberStatus(req, res, next) {
+    try {
+      const subscriber = await NewsletterService.toggleSubscriberStatus(req.params.id);
+      if (!subscriber) {
+        return res.status(404).json({ error: 'Subscriber not found' });
+      }
+
+      if (req.headers.accept?.includes('application/json') || req.xhr) {
+        return res.json({
+          success: true,
+          status: subscriber.status,
+          message: `Subscriber ${subscriber.status === 'active' ? 'activated' : 'unsubscribed'} successfully.`
+        });
+      }
+
+      req.flash('success', `Subscriber ${subscriber.status === 'active' ? 'activated' : 'unsubscribed'} successfully.`);
+      return res.redirect('/admin/subscribers');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async showContact(req, res, next) {
+    try {
+      const contact = await ContactRepository.findById(req.params.id);
+      if (!contact) {
+        return renderPlain(res.status(404), 'admin/error', { error: 'Contact message not found', statusCode: 404 });
+      }
+
+      let currentContact = contact;
+      if (contact.status === 'unread') {
+        currentContact = await ContactRepository.update(req.params.id, { status: 'read' });
+      }
+
+      renderAdmin(res, 'admin/contact-detail', {
+        pageTitle: 'Contact Message',
+        contact: currentContact && currentContact.toObject ? currentContact.toObject() : currentContact
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deleteContact(req, res, next) {
+    try {
+      await ContactRepository.delete(req.params.id);
+      if (req.xhr || req.headers.accept?.includes('application/json')) {
+        return res.status(204).end();
+      }
+      req.flash('success', 'Contact message deleted successfully.');
+      return res.redirect('/admin/contacts');
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async users(req, res, next) {
     try {
       const page = parseInt(req.query.page) || 1;
@@ -425,6 +728,40 @@ class AdminController {
       }
 
       req.flash('success', 'User deleted successfully.');
+      return res.redirect('/admin/users');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async toggleUserStatus(req, res, next) {
+    try {
+      const user = await UserRepository.findById(req.params.id);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      if (String(user._id) === String(req.session.user._id)) {
+        return res.status(400).json({ error: 'You cannot change your own account status.' });
+      }
+
+      if (user.role === 'admin') {
+        return res.status(403).json({ error: 'Admin accounts cannot be disabled.' });
+      }
+
+      const updated = await UserRepository.update(req.params.id, {
+        isActive: !user.isActive
+      });
+
+      if (req.headers.accept?.includes('application/json') || req.xhr) {
+        return res.json({
+          success: true,
+          isActive: updated.isActive,
+          message: `User ${updated.isActive ? 'activated' : 'deactivated'} successfully.`
+        });
+      }
+
+      req.flash('success', `User ${updated.isActive ? 'activated' : 'deactivated'} successfully.`);
       return res.redirect('/admin/users');
     } catch (error) {
       next(error);

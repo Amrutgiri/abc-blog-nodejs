@@ -12,7 +12,7 @@
           <div class="card-body">
             <div class="mb-3">
               <label for="name" class="form-label">Name</label>
-              <input type="text" class="form-control" id="name" name="name" value="<%= category ? category.name : '' %>" required minlength="2" maxlength="100">
+              <input type="text" class="form-control" id="name" name="name" value="<%= category ? category.name : '' %>" required minlength="2" maxlength="100" data-trim-required="true" data-trim-message="Category name is required.">
             </div>
             <div class="mb-3">
               <label for="description" class="form-label">Description</label>
@@ -32,7 +32,7 @@
             <h5 class="mb-0">Image</h5>
           </div>
           <div class="card-body">
-            <input type="text" class="form-control mb-2" id="image" name="image" value="<%= category ? category.image : '' %>" placeholder="Enter image URL">
+            <input type="text" class="form-control mb-2" id="image" name="image" value="<%= category ? category.image : '' %>" placeholder="Enter image URL" data-validate-url="true" data-url-message="Please enter a valid image URL.">
             <% if (category && category.image) { %>
               <img src="<%= category.image %>" alt="Category" class="img-fluid rounded">
             <% } %>

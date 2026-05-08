@@ -1,3 +1,5 @@
+const SiteSettingsService = require('./SiteSettingsService');
+
 const SITE_URL = (process.env.SITE_URL || 'http://localhost:3000').replace(/\/+$/, '');
 
 function absoluteUrl(url = '/') {
@@ -12,11 +14,12 @@ function canonicalPath(req) {
 }
 
 function buildSeo(req, options = {}) {
+  const settings = SiteSettingsService.getCachedSettings();
   const path = options.path || canonicalPath(req);
-  const title = options.title || 'Aptitude Booster Club';
-  const description = options.description || 'Your go-to resource for aptitude tests, competitive exams, and skill development.';
+  const title = options.title || settings.siteName;
+  const description = options.description || settings.siteDescription;
   const keywords = options.keywords || 'aptitude, reasoning, exams, blog';
-  const image = absoluteUrl(options.image || '/images/og-default.jpg');
+  const image = absoluteUrl(options.image || settings.siteLogoUrl || '/images/og-default.jpg');
 
   return {
     title,
@@ -27,8 +30,14 @@ function buildSeo(req, options = {}) {
     image,
     robots: options.robots || 'index,follow',
     type: options.type || 'website',
-    siteName: 'Aptitude Booster Club'
+    siteName: settings.siteName
   };
+}
+
+function makePageTitle(pageName = '') {
+  const settings = SiteSettingsService.getCachedSettings();
+  if (!pageName) return settings.siteName;
+  return `${pageName} - ${settings.siteName}`;
 }
 
 function buildPostSeo(req, post) {
@@ -42,6 +51,7 @@ function buildPostSeo(req, post) {
 }
 
 function buildBlogPostingJsonLd(post, req) {
+  const settings = SiteSettingsService.getCachedSettings();
   return {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -56,10 +66,10 @@ function buildBlogPostingJsonLd(post, req) {
     },
     publisher: {
       '@type': 'Organization',
-      name: 'Aptitude Booster Club',
+      name: settings.siteName,
       logo: {
         '@type': 'ImageObject',
-        url: absoluteUrl('/images/og-default.jpg')
+        url: absoluteUrl(settings.siteLogoUrl || '/images/og-default.jpg')
       }
     },
     mainEntityOfPage: absoluteUrl(`/blog/${post.slug}`),
@@ -83,6 +93,7 @@ function buildBreadcrumbJsonLd(items) {
 module.exports = {
   SITE_URL,
   absoluteUrl,
+  makePageTitle,
   buildSeo,
   buildPostSeo,
   buildBlogPostingJsonLd,

@@ -22,6 +22,23 @@ $(document).ready(function() {
     window.gtag('config', gaId);
   }
 
+  const typesetMath = () => {
+    if (!window.MathJax || typeof window.MathJax.typesetPromise !== 'function') return;
+
+    const mathRoots = document.querySelectorAll('.post-content');
+    if (!mathRoots.length) return;
+
+    window.MathJax.typesetPromise(Array.from(mathRoots)).catch((error) => {
+      console.error('MathJax typeset error:', error);
+    });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', typesetMath);
+  } else {
+    typesetMath();
+  }
+
   const forms = document.querySelectorAll('[data-search-autocomplete]');
   if (!forms.length) return;
 

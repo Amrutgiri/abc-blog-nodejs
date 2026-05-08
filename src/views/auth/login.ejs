@@ -4,6 +4,9 @@
       <div class="col-lg-5">
         <div class="card border-0 shadow-sm auth-card">
           <div class="card-body p-4 p-md-5">
+            <%
+              const currentData = typeof formData !== 'undefined' && formData ? formData : { email: '' };
+            %>
             <h1 class="h3 fw-bold mb-2">Welcome back</h1>
             <p class="text-muted mb-4">Log in to save quiz results and track your progress.</p>
 
@@ -12,7 +15,7 @@
               <input type="hidden" name="redirectTo" value="<%= redirectTo || '' %>">
               <div class="mb-3">
                 <label class="form-label">Email</label>
-                <input type="email" class="form-control form-control-lg" name="email" autocomplete="email" required>
+                <input type="email" class="form-control form-control-lg" name="email" value="<%= currentData.email %>" autocomplete="email" required data-trim-required="true" data-trim-message="Email is required." data-no-html-tags="true" data-no-html-message="Email cannot contain HTML or script tags.">
               </div>
               <div class="mb-3">
                 <label class="form-label">Password</label>

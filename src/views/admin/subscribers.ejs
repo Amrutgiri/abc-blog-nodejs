@@ -1,0 +1,122 @@
+<div class="subscribers-content">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <h1 class="h4 mb-1">Newsletter Subscribers</h1>
+      <p class="text-muted mb-0">Track active subscribers and manage unsubscribe status.</p>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="stat-card bg-white shadow-sm rounded-3 p-4 h-100">
+        <p class="text-muted mb-1">Total</p>
+        <h3 class="mb-0 fw-bold"><%= stats.total || 0 %></h3>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card bg-white shadow-sm rounded-3 p-4 h-100">
+        <p class="text-muted mb-1">Active</p>
+        <h3 class="mb-0 fw-bold"><%= stats.active || 0 %></h3>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card bg-white shadow-sm rounded-3 p-4 h-100">
+        <p class="text-muted mb-1">Unsubscribed</p>
+        <h3 class="mb-0 fw-bold"><%= stats.unsubscribed || 0 %></h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <form class="row g-3 align-items-end" method="GET" action="/admin/subscribers">
+        <div class="col-md-5">
+          <label class="form-label">Search</label>
+          <input type="text" class="form-control" name="q" value="<%= query || '' %>" placeholder="Search email, name, or source">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Status</label>
+          <select class="form-select" name="status">
+            <option value="" <%= !status ? 'selected' : '' %>>All</option>
+            <option value="active" <%= status === 'active' ? 'selected' : '' %>>Active</option>
+            <option value="unsubscribed" <%= status === 'unsubscribed' ? 'selected' : '' %>>Unsubscribed</option>
+          </select>
+        </div>
+        <div class="col-md-4 d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Filter</button>
+          <a href="/admin/subscribers" class="btn btn-outline-secondary">Reset</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-3">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Name</th>
+              <th>Status</th>
+              <th>Source</th>
+              <th>Subscribed</th>
+              <th>Unsubscribed</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (subscribers && subscribers.length > 0) { %>
+              <% subscribers.forEach(function(subscriber) { %>
+                <tr>
+                  <td class="fw-semibold"><%= subscriber.email %></td>
+                  <td><%= subscriber.name || '-' %></td>
+                  <td>
+                    <button
+                      type="button"
+                      class="badge border-0 btn-toggle-subscriber-status bg-<%= subscriber.status === 'active' ? 'success' : 'secondary' %> text-white"
+                      data-id="<%= subscriber._id %>">
+                      <%= subscriber.status === 'active' ? 'Active' : 'Unsubscribed' %>
+                    </button>
+                  </td>
+                  <td><%= subscriber.source || '-' %></td>
+                  <td><%= subscriber.confirmedAt ? new Date(subscriber.confirmedAt).toLocaleDateString() : '-' %></td>
+                  <td><%= subscriber.unsubscribedAt ? new Date(subscriber.unsubscribedAt).toLocaleDateString() : '-' %></td>
+                  <td class="text-end">
+                    <a class="btn btn-sm btn-outline-primary" href="mailto:<%= subscriber.email %>">Email</a>
+                  </td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="7" class="text-center text-muted py-5">No subscribers found.</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <% if (totalPages > 1) { %>
+    <nav class="mt-4">
+      <ul class="pagination justify-content-center">
+        <% if (page > 1) { %>
+          <li class="page-item">
+            <a class="page-link" href="?page=<%= page - 1 %>&q=<%= encodeURIComponent(query || '') %>&status=<%= status || '' %>">Previous</a>
+          </li>
+        <% } %>
+        <% for (var i = 1; i <= totalPages; i++) { %>
+          <li class="page-item <%= page === i ? 'active' : '' %>">
+            <a class="page-link" href="?page=<%= i %>&q=<%= encodeURIComponent(query || '') %>&status=<%= status || '' %>"><%= i %></a>
+          </li>
+        <% } %>
+        <% if (page < totalPages) { %>
+          <li class="page-item">
+            <a class="page-link" href="?page=<%= page + 1 %>&q=<%= encodeURIComponent(query || '') %>&status=<%= status || '' %>">Next</a>
+          </li>
+        <% } %>
+      </ul>
+    </nav>
+  <% } %>
+</div>

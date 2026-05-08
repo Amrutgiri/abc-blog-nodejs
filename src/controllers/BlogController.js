@@ -29,9 +29,9 @@ class BlogController {
       const categories = await CategoryRepository.findAllWithCounts();
       const suggestions = search ? await PostRepository.suggest(search) : [];
       const seo = SeoService.buildSeo(req, {
-        title: search ? `Search results for "${search}" - Aptitude Booster Club` : 'Blog - Aptitude Booster Club',
+        title: search ? SeoService.makePageTitle(`Search results for "${search}"`) : SeoService.makePageTitle('Blog'),
         description: search
-          ? `Browse search results for ${search} on Aptitude Booster Club.`
+          ? `Browse search results for ${search}.`
           : 'Read practical aptitude, reasoning, and exam preparation articles.',
         keywords: search || 'aptitude blog, reasoning, exam preparation'
       });
@@ -112,7 +112,7 @@ class BlogController {
       const { posts, total, totalPages } = await PostRepository.findByCategory(category._id, { page, limit });
       const categories = await CategoryRepository.findAllWithCounts();
       const seo = SeoService.buildSeo(req, {
-        title: `${category.name} - Aptitude Booster Club`,
+        title: SeoService.makePageTitle(category.name),
         description: category.description || `Browse articles under ${category.name}.`,
         keywords: category.name
       });
@@ -145,7 +145,7 @@ class BlogController {
       const { posts, total, totalPages } = await PostRepository.findByTag(tag._id, { page, limit });
       const categories = await CategoryRepository.findAllWithCounts();
       const seo = SeoService.buildSeo(req, {
-        title: `${tag.name} - Aptitude Booster Club`,
+        title: SeoService.makePageTitle(tag.name),
         description: `Browse articles tagged with ${tag.name}.`,
         keywords: tag.name
       });
@@ -178,8 +178,8 @@ class BlogController {
       const { posts, total, totalPages } = await PostRepository.search(query, { page, limit });
       const categories = await CategoryRepository.findAllWithCounts();
       const seo = SeoService.buildSeo(req, {
-        title: `Search: ${query} - Aptitude Booster Club`,
-        description: `Search results for ${query} on Aptitude Booster Club.`,
+        title: SeoService.makePageTitle(`Search: ${query}`),
+        description: `Search results for ${query}.`,
         keywords: query
       });
 

@@ -14,9 +14,12 @@
 
 <section class="about-section py-5">
   <div class="container">
+    <%
+      const siteBrand = typeof siteSettings !== 'undefined' && siteSettings ? siteSettings : {};
+    %>
     <div class="row align-items-center g-5">
       <div class="col-lg-6">
-        <h2 class="display-5 fw-bold mb-4">Welcome to Aptitude Booster Club</h2>
+        <h2 class="display-5 fw-bold mb-4">Welcome to <%= siteBrand.siteName || 'Aptitude Booster Club' %></h2>
         <p class="lead mb-4">We are dedicated to helping students and professionals improve their aptitude skills and excel in competitive exams.</p>
         <p class="text-muted mb-4">Our platform provides comprehensive resources for aptitude tests, reasoning puzzles, mathematical concepts, and verbal ability. Whether you're preparing for entrance exams, job interviews, or want to sharpen your skills, we've got you covered.</p>
         <div class="row g-3 mt-4">
@@ -45,7 +48,7 @@
         </div>
       </div>
       <div class="col-lg-6">
-        <img src="/images/about-hero.jpg" alt="About Us" class="img-fluid rounded-3 shadow-lg">
+        <img src="<%= siteBrand.siteLogoUrl || '/images/headerlogo.png' %>" alt="<%= siteBrand.siteName || 'About Us' %>" class="img-fluid rounded-3 shadow-lg">
       </div>
     </div>
   </div>

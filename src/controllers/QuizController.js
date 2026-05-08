@@ -20,7 +20,7 @@ class QuizController {
 
       const { quizzes, total, totalPages } = await QuizRepository.findForList({ page, limit, category });
       const seo = SeoService.buildSeo(req, {
-        title: 'Aptitude Quizzes - Aptitude Booster Club',
+        title: SeoService.makePageTitle('Aptitude Quizzes'),
         description: 'Practice aptitude quizzes for quantitative, logical, and verbal reasoning.',
         keywords: 'aptitude quiz, quantitative quiz, logical quiz, verbal quiz'
       });
@@ -51,8 +51,8 @@ class QuizController {
       const topAttempts = await QuizRepository.getAttemptsForQuiz(quiz._id, 10);
       const relatedPosts = quiz.blogPosts || [];
       const seo = SeoService.buildSeo(req, {
-        title: `${quiz.title} - Quiz`,
-        description: quiz.description || `Take the ${quiz.title} quiz on Aptitude Booster Club.`,
+        title: SeoService.makePageTitle(`${quiz.title} - Quiz`),
+        description: quiz.description || `Take the ${quiz.title} quiz.`,
         keywords: `${quiz.category}, quiz, aptitude`
       });
 
@@ -80,7 +80,7 @@ class QuizController {
       const questions = QuizService.prepareQuestions(quiz, rawQuestions.map(question => question.toObject()));
       const startedAt = Date.now();
       const seo = SeoService.buildSeo(req, {
-        title: `Take ${quiz.title} - Aptitude Booster Club`,
+        title: SeoService.makePageTitle(`Take ${quiz.title}`),
         description: quiz.description || `Attempt the ${quiz.title} quiz.`,
         keywords: `${quiz.category}, quiz`
       });

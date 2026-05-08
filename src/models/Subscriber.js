@@ -28,6 +28,13 @@ const subscriberSchema = new mongoose.Schema({
   },
   unsubscribedAt: {
     type: Date
+  },
+  unsubscribeTokenHash: {
+    type: String,
+    index: true
+  },
+  unsubscribeTokenIssuedAt: {
+    type: Date
   }
 }, {
   timestamps: true

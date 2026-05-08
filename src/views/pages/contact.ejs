@@ -1,4 +1,12 @@
 
+<%
+  const currentData = typeof formData !== 'undefined' && formData ? formData : { name: '', email: '', message: '' };
+  const validationMap = typeof fieldErrorMap !== 'undefined' && fieldErrorMap ? fieldErrorMap : {};
+  const getFieldError = (name) => validationMap[name] || '';
+  const hasError = (name) => Boolean(getFieldError(name));
+  const contactDisposableDomains = typeof disposableDomains !== 'undefined' ? disposableDomains : [];
+  const disposableList = Array.isArray(contactDisposableDomains) ? contactDisposableDomains : [];
+%>
 
 <div class="page-header py-5 bg-light">
   <div class="container">
@@ -66,15 +74,34 @@
               <div class="row g-3">
                 <div class="col-md-6">
                   <label for="name" class="form-label">Name</label>
-                  <input type="text" class="form-control" id="name" name="name" required minlength="2" maxlength="100" autocomplete="name">
+                  <input type="text" class="form-control <%= hasError('name') ? 'is-invalid' : '' %>" id="name" name="name" value="<%= currentData.name %>" required minlength="2" maxlength="100" autocomplete="name" data-trim-required="true" data-trim-message="Name is required.">
+                  <% if (hasError('name')) { %>
+                    <div class="invalid-feedback"><%= getFieldError('name') %></div>
+                  <% } %>
                 </div>
                 <div class="col-md-6">
                   <label for="email" class="form-label">Email</label>
-                  <input type="email" class="form-control" id="email" name="email" required autocomplete="email">
+                  <input
+                    type="email"
+                    class="form-control <%= hasError('email') ? 'is-invalid' : '' %>"
+                    id="email"
+                    name="email"
+                    value="<%= currentData.email %>"
+                    required
+                    autocomplete="email"
+                    data-validate-disposable-email="true"
+                    data-disposable-domains="<%= disposableList.join(',') %>"
+                    data-disposable-message="Disposable email addresses are not allowed.">
+                  <% if (hasError('email')) { %>
+                    <div class="invalid-feedback"><%= getFieldError('email') %></div>
+                  <% } %>
                 </div>
                 <div class="col-12">
                   <label for="message" class="form-label">Message</label>
-                  <textarea class="form-control" id="message" name="message" rows="5" required minlength="10" maxlength="2000"></textarea>
+                  <textarea class="form-control <%= hasError('message') ? 'is-invalid' : '' %>" id="message" name="message" rows="5" required minlength="10" maxlength="2000" data-trim-required="true" data-trim-message="Message is required."><%= currentData.message %></textarea>
+                  <% if (hasError('message')) { %>
+                    <div class="invalid-feedback"><%= getFieldError('message') %></div>
+                  <% } %>
                 </div>
                 <div class="col-12">
                   <button type="submit" class="btn btn-primary btn-lg">Send Message</button>

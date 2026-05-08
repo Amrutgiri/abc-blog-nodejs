@@ -1,7 +1,7 @@
 const slugify = require('slugify');
 const QuizRepository = require('../repositories/QuizRepository');
 const PostRepository = require('../repositories/PostRepository');
-const { QuizService } = require('../services');
+const { QuizService, NewsletterService } = require('../services');
 
 function renderAdmin(res, view, data = {}) {
   return res.render(view, {
@@ -88,6 +88,22 @@ class AdminQuizController {
         publishedAt: status === 'published' ? new Date() : undefined
       }, questions);
 
+      if (status === 'published') {
+        await NewsletterService.sendAnnouncementToSubscribers({
+          kind: 'quiz',
+          title,
+          description: description || 'A new quiz is now available.',
+          ctaUrl: `${(process.env.SITE_URL || 'http://localhost:3000').replace(/\/+$/, '')}/quizzes/${slug}`,
+          ctaLabel: 'Take Quiz',
+          highlights: [
+            `Category: ${category}`,
+            `Duration: ${Number(duration)} minutes`,
+            `Questions: ${questions.length}`
+          ],
+          footnote: 'Challenge yourself with the latest quiz.'
+        }).catch(() => null);
+      }
+
       req.flash('success', 'Quiz created successfully.');
       return res.redirect('/admin/quizzes');
     } catch (error) {
@@ -140,6 +156,22 @@ class AdminQuizController {
         blogPosts,
         publishedAt: status === 'published' && !quiz.publishedAt ? new Date() : quiz.publishedAt
       }, questions.length > 0 ? questions : null);
+
+      if (status === 'published' && quiz.status !== 'published') {
+        await NewsletterService.sendAnnouncementToSubscribers({
+          kind: 'quiz',
+          title,
+          description: description || 'A new quiz is now available.',
+          ctaUrl: `${(process.env.SITE_URL || 'http://localhost:3000').replace(/\/+$/, '')}/quizzes/${quiz.slug}`,
+          ctaLabel: 'Take Quiz',
+          highlights: [
+            `Category: ${category}`,
+            `Duration: ${Number(duration)} minutes`,
+            `Questions: ${questions.length || quiz.totalQuestions || 0}`
+          ],
+          footnote: 'Challenge yourself with the latest quiz.'
+        }).catch(() => null);
+      }
 
       req.flash('success', 'Quiz updated successfully.');
       return res.redirect('/admin/quizzes');
