@@ -39,14 +39,34 @@ function cleanUrl(value) {
   const raw = cleanText(value);
   if (!raw) return '';
   if (raw.startsWith('/')) return raw;
-  if (/^https?:\/\//i.test(raw)) return raw;
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      const parsed = new URL(raw);
+      if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
+        return `${parsed.pathname || '/'}${parsed.search || ''}${parsed.hash || ''}`;
+      }
+      return raw;
+    } catch (error) {
+      return '';
+    }
+  }
   return '';
 }
 
 function absoluteUrl(url = '/') {
   const siteUrl = getBaseSiteUrl();
   if (!url) return siteUrl;
-  if (/^https?:\/\//i.test(url)) return url;
+  if (/^https?:\/\//i.test(url)) {
+    try {
+      const parsed = new URL(url);
+      if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
+        return `${siteUrl}${parsed.pathname || '/'}${parsed.search || ''}${parsed.hash || ''}`;
+      }
+      return url;
+    } catch (error) {
+      return url;
+    }
+  }
   return `${siteUrl}${url.startsWith('/') ? url : `/${url}`}`;
 }
 
