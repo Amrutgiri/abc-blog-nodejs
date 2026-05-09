@@ -37,6 +37,9 @@
                       class="badge border-0 btn-toggle-user-status bg-<%= account.isActive ? 'success' : 'secondary' %> text-white"
                       data-id="<%= account._id %>"
                       data-state="<%= account.isActive ? 'active' : 'inactive' %>"
+                      data-action="toggle-user-status"
+                      onclick="if (window.ABCAdmin && window.ABCAdmin.toggleUserStatus) { window.ABCAdmin.toggleUserStatus(this); } return false;"
+                      style="cursor:pointer; pointer-events:auto;"
                       <%= account.role === 'admin' || String(account._id) === String(user && user._id ? user._id : '') ? 'disabled' : '' %>>
                       <%= account.isActive ? 'Active' : 'Inactive' %>
                     </button>

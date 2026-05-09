@@ -35,11 +35,25 @@
                 <input type="text" class="form-control <%= hasError('siteLogoUrl') ? 'is-invalid' : '' %>" name="siteLogoUrl" value="<%= currentData.siteLogoUrl || '' %>" placeholder="/images/headerlogo.png" data-validate-asset-url="true" data-asset-url-message="Logo must be a valid URL or site-relative path.">
                 <% if (getFieldError('siteLogoUrl')) { %><div class="invalid-feedback"><%= getFieldError('siteLogoUrl') %></div><% } %>
                 <small class="text-muted">Use a public image URL or a path inside `/public` like `/images/headerlogo.png`.</small>
+                <div class="mt-2 d-flex flex-wrap gap-2 align-items-center" data-cloudinary-upload-widget data-target="[name='siteLogoUrl']" data-preview="#logoPreviewImage" data-status="#siteLogoStatus">
+                  <input type="file" class="form-control form-control-sm" accept="image/*" data-upload-file>
+                  <button type="button" class="btn btn-outline-primary btn-sm" data-upload-button>
+                    <i class="bi bi-upload me-1"></i>Upload Logo
+                  </button>
+                  <small class="text-muted" id="siteLogoStatus">Upload a logo image to Cloudinary.</small>
+                </div>
               </div>
               <div class="col-md-6">
                 <label class="form-label">Favicon URL / Path</label>
                 <input type="text" class="form-control <%= hasError('faviconUrl') ? 'is-invalid' : '' %>" name="faviconUrl" value="<%= currentData.faviconUrl || '' %>" placeholder="/images/favicon (2).png" data-validate-asset-url="true" data-asset-url-message="Favicon must be a valid URL or site-relative path.">
                 <% if (getFieldError('faviconUrl')) { %><div class="invalid-feedback"><%= getFieldError('faviconUrl') %></div><% } %>
+                <div class="mt-2 d-flex flex-wrap gap-2 align-items-center" data-cloudinary-upload-widget data-target="[name='faviconUrl']" data-preview="#faviconPreviewImage" data-status="#faviconStatus">
+                  <input type="file" class="form-control form-control-sm" accept="image/*" data-upload-file>
+                  <button type="button" class="btn btn-outline-primary btn-sm" data-upload-button>
+                    <i class="bi bi-upload me-1"></i>Upload Favicon
+                  </button>
+                  <small class="text-muted" id="faviconStatus">Upload a favicon image to Cloudinary.</small>
+                </div>
               </div>
               <div class="col-md-6">
                 <label class="form-label">Contact Email</label>
@@ -117,7 +131,7 @@
             <h5 class="mb-0">Live Preview</h5>
           </div>
           <div class="card-body text-center">
-            <img src="<%= logoPreview %>" alt="Site logo preview" class="img-fluid mb-3" style="max-height: 110px; object-fit: contain;">
+            <img src="<%= logoPreview %>" alt="Site logo preview" class="img-fluid mb-3" style="max-height: 110px; object-fit: contain;" id="logoPreviewImage">
             <h5 class="mb-2"><%= currentData.siteName || 'Website Name' %></h5>
             <p class="text-muted small mb-3"><%= currentData.siteDescription || 'Website description preview' %></p>
             <div class="d-flex justify-content-center gap-2 flex-wrap">
@@ -138,7 +152,7 @@
             <div class="mb-3">
               <label class="form-label">Favicon Preview</label>
               <div class="d-flex align-items-center gap-3">
-                <img src="<%= faviconPreview %>" alt="Favicon preview" width="48" height="48" class="rounded border">
+                <img src="<%= faviconPreview %>" alt="Favicon preview" width="48" height="48" class="rounded border" id="faviconPreviewImage">
                 <div>
                   <small class="text-muted d-block">Used for browser tabs and bookmarks.</small>
                 </div>

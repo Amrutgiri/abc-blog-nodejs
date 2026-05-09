@@ -1,7 +1,31 @@
 const { SeoService, UserProgressService, LeaderboardService } = require('../services');
+const UserRepository = require('../repositories/UserRepository');
 const QuizAttempt = require('../models/QuizAttempt');
 
 class ProfileController {
+  async index(req, res, next) {
+    try {
+      const [data, profileUser] = await Promise.all([
+        UserProgressService.getDashboardData(req.session.user._id),
+        UserRepository.findById(req.session.user._id)
+      ]);
+
+      const seo = SeoService.buildSeo(req, {
+        title: SeoService.makePageTitle('My Profile'),
+        description: 'View your account details, quiz activity, and progress.'
+      });
+
+      res.render('profile/index', {
+        pageTitle: seo.title,
+        seo,
+        data,
+        profileUser: profileUser || req.session.user
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async dashboard(req, res, next) {
     try {
       const data = await UserProgressService.getDashboardData(req.session.user._id);

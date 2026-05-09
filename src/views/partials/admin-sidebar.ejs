@@ -16,9 +16,11 @@
   </div>
 
   <div class="sidebar-profile">
-    <img src="/images/default-avatar.png" alt="Admin" class="sidebar-avatar" width="44" height="44">
+    <a href="/admin/profile" class="text-decoration-none">
+      <img src="<%= (adminUser && adminUser.avatar) || '/images/default-avatar.png' %>" alt="Admin" class="sidebar-avatar" width="44" height="44">
+    </a>
     <div>
-      <strong><%= adminUser ? adminUser.username : 'Admin' %></strong>
+      <strong><a href="/admin/profile" class="text-white text-decoration-none"><%= adminUser ? adminUser.username : 'Admin' %></a></strong>
       <small><%= adminUser ? adminUser.email : 'Administrator' %></small>
     </div>
   </div>
@@ -31,6 +33,12 @@
         <a href="/admin" class="nav-link <%= currentPage === 'dashboard' ? 'active' : '' %>">
           <i class="bi bi-grid"></i>
           <span>Dashboard</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="/admin/profile" class="nav-link <%= currentPage === 'profile' ? 'active' : '' %>">
+          <i class="bi bi-person"></i>
+          <span>My Profile</span>
         </a>
       </li>
       <li class="nav-item">

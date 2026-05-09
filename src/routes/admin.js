@@ -108,6 +108,51 @@ const settingsValidationRules = [
     .withMessage('Copyright text cannot exceed 120 characters.')
 ];
 
+const profileValidationRules = [
+  body('name')
+    .trim()
+    .custom(rejectHtmlMarkup('Name'))
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Name must be between 2 and 100 characters.'),
+  body('avatar')
+    .optional({ checkFalsy: true })
+    .trim()
+    .custom(rejectHtmlMarkup('Avatar URL'))
+    .custom(validateAssetUrlOrPath('Avatar URL')),
+  body('bio')
+    .optional({ checkFalsy: true })
+    .trim()
+    .custom(rejectHtmlMarkup('Bio'))
+    .isLength({ max: 500 })
+    .withMessage('Bio cannot exceed 500 characters.'),
+  body('currentPassword')
+    .optional({ checkFalsy: true })
+    .isLength({ min: 6, max: 72 })
+    .withMessage('Current password must be between 6 and 72 characters.'),
+  body('newPassword')
+    .optional({ checkFalsy: true })
+    .isLength({ min: 6, max: 72 })
+    .withMessage('New password must be between 6 and 72 characters.'),
+  body('confirmPassword')
+    .custom((value, { req }) => {
+      const newPassword = String(req.body.newPassword || '').trim();
+      const confirmPassword = String(value || '').trim();
+      if (!newPassword && !confirmPassword) {
+        return true;
+      }
+      if (!newPassword) {
+        throw new Error('New password is required when changing password.');
+      }
+      if (!confirmPassword) {
+        throw new Error('Please confirm your new password.');
+      }
+      if (newPassword !== confirmPassword) {
+        throw new Error('New password and confirmation do not match.');
+      }
+      return true;
+    })
+];
+
 const postValidationRules = [
   body('title')
     .trim()
@@ -221,6 +266,8 @@ router.use(isAuthenticated, requireAdmin, (req, res, next) => {
     res.locals.currentPage = 'subscribers';
   } else if (req.path.startsWith('/settings')) {
     res.locals.currentPage = 'settings';
+  } else if (req.path.startsWith('/profile')) {
+    res.locals.currentPage = 'profile';
   } else if (req.path.startsWith('/users')) {
     res.locals.currentPage = 'users';
   } else {
@@ -259,6 +306,9 @@ router.delete('/contacts/:id', AdminController.deleteContact);
 
 router.get('/settings', AdminController.settings);
 router.post('/settings', settingsValidationRules, AdminController.settings);
+
+router.get('/profile', AdminController.profile);
+router.post('/profile', profileValidationRules, AdminController.profile);
 
 router.get('/subscribers', AdminController.subscribers);
 router.post('/subscribers/:id/toggle-status', AdminController.toggleSubscriberStatus);

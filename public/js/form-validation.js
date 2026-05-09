@@ -41,6 +41,27 @@
     return true;
   }
 
+  function validateRequiredIfField(field) {
+    if (!field || !field.dataset.requiredIf) return true;
+    const target = field.form && field.form.querySelector(field.dataset.requiredIf);
+    if (!target) return true;
+
+    const targetHasValue = Boolean(String(target.value || '').trim());
+    const fieldHasValue = Boolean(String(field.value || '').trim());
+
+    if (!targetHasValue) {
+      clearCustomValidity(field);
+      return true;
+    }
+
+    if (!fieldHasValue) {
+      return markInvalid(field, field.dataset.requiredIfMessage || `${getFieldLabel(field)} is required.`);
+    }
+
+    clearCustomValidity(field);
+    return true;
+  }
+
   function validateJsonField(field) {
     if (!field || !field.dataset.validateJson) return true;
     const raw = String(field.value || '').trim();
@@ -237,6 +258,7 @@
       if (field.type === 'hidden' && !field.dataset.validateEditorContent && !field.dataset.validateJson && !field.dataset.match) return;
 
       if (!validateMatchField(field)) valid = false;
+      if (!validateRequiredIfField(field)) valid = false;
       if (!validateJsonField(field)) valid = false;
       if (!validateTrimRequiredField(field)) valid = false;
       if (!validateUrlField(field)) valid = false;
@@ -263,6 +285,10 @@
 
     if (field.dataset.match) {
       validateMatchField(field);
+    }
+
+    if (field.dataset.requiredIf) {
+      validateRequiredIfField(field);
     }
 
     if (field.dataset.validateJson) {
@@ -301,6 +327,13 @@
     }
 
     if (field.id) {
+      const selector = `[data-required-if="#${escapeSelector(field.id)}"]`;
+      field.form.querySelectorAll(selector).forEach((requiredIfField) => {
+        validateRequiredIfField(requiredIfField);
+      });
+    }
+
+    if (field.id) {
       const selector = `[data-match="#${escapeSelector(field.id)}"]`;
       field.form.querySelectorAll(selector).forEach((matchField) => {
         validateMatchField(matchField);
@@ -335,6 +368,7 @@
   window.ABCFormValidation = {
     validateForm,
     validateMatchField,
+    validateRequiredIfField,
     validateJsonField,
     validateTrimRequiredField,
     validateUrlField,

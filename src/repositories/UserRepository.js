@@ -10,6 +10,10 @@ class UserRepository {
     return await User.findById(id).select('-password');
   }
 
+  async findByIdWithPassword(id) {
+    return await User.findById(id).select('+password');
+  }
+
   async findByEmail(email) {
     return await User.findOne({ email });
   }

@@ -1,0 +1,128 @@
+<%
+  const profile = profileUser || (data && data.user) || {};
+  const displayName = profile.name || profile.username || 'User';
+  const avatar = profile.avatar || '/images/default-avatar.png';
+%>
+
+<div class="profile-page py-5">
+  <div class="container">
+    <div class="row g-4 align-items-stretch mb-4">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body p-4 p-md-5">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+              <div class="d-flex align-items-center gap-3">
+                <img src="<%= avatar %>" alt="<%= displayName %>" class="rounded-circle border" width="84" height="84" style="object-fit: cover;">
+                <div>
+                  <p class="text-muted mb-1">My Profile</p>
+                  <h1 class="h3 fw-bold mb-1"><%= displayName %></h1>
+                  <p class="text-muted mb-0"><%= profile.email || '' %></p>
+                </div>
+              </div>
+              <div class="text-end">
+                <span class="badge bg-primary mb-2"><%= (data.summary.badges && data.summary.badges.length > 0) ? data.summary.badges[data.summary.badges.length - 1] : 'Beginner' %></span>
+                <div class="small text-muted">Current streak: <strong><%= data.summary.currentStreak %></strong> days</div>
+                <div class="small text-muted">Longest streak: <strong><%= data.summary.longestStreak %></strong> days</div>
+              </div>
+            </div>
+
+            <div class="row g-3 mt-4">
+              <div class="col-md-4">
+                <div class="stat-card bg-light rounded-4 p-3 h-100">
+                  <p class="text-muted mb-1">Role</p>
+                  <h5 class="mb-0 text-capitalize"><%= profile.role || 'member' %></h5>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="stat-card bg-light rounded-4 p-3 h-100">
+                  <p class="text-muted mb-1">Username</p>
+                  <h5 class="mb-0"><%= profile.username || '-' %></h5>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="stat-card bg-light rounded-4 p-3 h-100">
+                  <p class="text-muted mb-1">Points</p>
+                  <h5 class="mb-0 text-primary"><%= data.summary.totalPoints %></h5>
+                </div>
+              </div>
+            </div>
+            <p class="text-muted mt-4 mb-0"><%= profile.bio || 'You can update your avatar and bio from the admin/profile page if you are an administrator, and track your quiz progress here.' %></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body p-4">
+            <h2 class="h6 text-uppercase text-muted">Quick Stats</h2>
+            <div class="display-5 fw-bold text-primary"><%= data.summary.totalAttempts %></div>
+            <p class="text-muted mb-4">Quizzes attempted</p>
+            <div class="d-grid gap-2">
+              <a href="/dashboard" class="btn btn-primary">Open Dashboard</a>
+              <a href="/profile/attempts" class="btn btn-outline-primary">My Attempts</a>
+              <a href="/leaderboard" class="btn btn-outline-secondary">Leaderboard</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white">
+            <h5 class="mb-0">Recent Activity</h5>
+          </div>
+          <div class="card-body">
+            <% if (data.attempts && data.attempts.length > 0) { %>
+              <div class="list-group list-group-flush">
+                <% data.attempts.slice(0, 5).forEach(function(attempt) { %>
+                  <a href="/quizzes/<%= attempt.quiz.slug %>" class="list-group-item list-group-item-action px-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <div class="fw-semibold"><%= attempt.quiz.title %></div>
+                        <small class="text-muted"><%= new Date(attempt.submittedAt).toLocaleDateString() %></small>
+                      </div>
+                      <div class="text-end">
+                        <div class="fw-bold"><%= attempt.percentage %>%</div>
+                        <small class="text-muted"><%= attempt.score %>/<%= attempt.totalQuestions %></small>
+                      </div>
+                    </div>
+                  </a>
+                <% }); %>
+              </div>
+            <% } else { %>
+              <div class="text-center text-muted py-5">No quiz attempts yet.</div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-body">
+            <h5 class="mb-3">Badges</h5>
+            <div class="d-flex flex-wrap gap-2">
+              <% (data.summary.badges || ['Beginner']).forEach(function(badge) { %>
+                <span class="badge bg-light text-dark border"><%= badge %></span>
+              <% }); %>
+            </div>
+          </div>
+        </div>
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <h5 class="mb-3">Account Links</h5>
+            <div class="d-grid gap-2">
+              <a href="/dashboard" class="btn btn-outline-primary">Dashboard</a>
+              <a href="/profile/attempts" class="btn btn-outline-primary">Attempts</a>
+              <form method="POST" action="/auth/logout" class="m-0">
+                <%- include('../partials/csrf') %>
+                <button type="submit" class="btn btn-outline-danger w-100">Logout</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

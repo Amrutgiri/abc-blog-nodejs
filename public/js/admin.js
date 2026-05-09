@@ -1,3 +1,5 @@
+window.ABCAdmin = window.ABCAdmin || {};
+
 $(document).ready(function() {
   const csrfToken = $('meta[name="csrf-token"]').attr('content') || '';
   const pluralMap = {
@@ -7,7 +9,7 @@ $(document).ready(function() {
     post: 'posts'
   };
 
-  $('.btn-delete').on('click', function() {
+  $(document).on('click', '.btn-delete', function() {
     const $btn = $(this);
     const id = $btn.data('id');
     const type = $btn.data('type') || 'post';
@@ -46,10 +48,16 @@ $(document).ready(function() {
     });
   });
 
-  $('.btn-toggle-user-status').on('click', function() {
-    const $btn = $(this);
+  window.ABCAdmin.toggleUserStatus = function(button) {
+    const $btn = $(button);
     const id = $btn.data('id');
     if (!id) return;
+
+    if ($btn.prop('disabled')) {
+      return;
+    }
+
+    $btn.prop('disabled', true);
 
     $.ajax({
       url: '/admin/users/' + id + '/toggle-status',
@@ -69,14 +77,28 @@ $(document).ready(function() {
       error: function(xhr) {
         const message = xhr?.responseJSON?.error || 'Could not update user status.';
         Swal.fire('Error!', message, 'error');
+      },
+      complete: function() {
+        $btn.prop('disabled', false);
       }
     });
+  };
+
+  $(document).on('click', '.btn-toggle-user-status', function(event) {
+    event.preventDefault();
+    window.ABCAdmin.toggleUserStatus(this);
   });
 
-  $('.btn-toggle-subscriber-status').on('click', function() {
+  $(document).on('click', '.btn-toggle-subscriber-status', function() {
     const $btn = $(this);
     const id = $btn.data('id');
     if (!id) return;
+
+    if ($btn.prop('disabled')) {
+      return;
+    }
+
+    $btn.prop('disabled', true);
 
     $.ajax({
       url: '/admin/subscribers/' + id + '/toggle-status',
@@ -96,11 +118,14 @@ $(document).ready(function() {
       error: function(xhr) {
         const message = xhr?.responseJSON?.error || 'Could not update subscriber status.';
         Swal.fire('Error!', message, 'error');
+      },
+      complete: function() {
+        $btn.prop('disabled', false);
       }
     });
   });
 
-  $('.btn-toggle-sidebar').on('click', function() {
+  $(document).on('click', '.btn-toggle-sidebar', function() {
     $('.admin-sidebar').toggleClass('open');
   });
 });

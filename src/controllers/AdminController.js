@@ -67,6 +67,20 @@ function buildSettingsFormData(settings = {}, body = null) {
   };
 }
 
+function buildProfileFormData(user = {}, body = null) {
+  const source = body || user || {};
+  return {
+    name: source.name || '',
+    username: source.username || '',
+    email: source.email || '',
+    avatar: source.avatar || '',
+    bio: source.bio || '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  };
+}
+
 function buildPostFormData(post = null, body = {}) {
   const postCategoryId = post?.category?._id ? String(post.category._id) : '';
   const postTagIds = Array.isArray(post?.tags) ? post.tags.map(tag => String(tag._id || tag)) : [];
@@ -560,6 +574,108 @@ class AdminController {
         pageTitle: 'Site Settings',
         settings: currentSettings,
         formData: buildSettingsFormData(currentSettings)
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async profile(req, res, next) {
+    try {
+      const adminId = req.session?.user?._id;
+      const currentUser = await UserRepository.findByIdWithPassword(adminId);
+
+      if (!currentUser) {
+        return renderPlain(res.status(404), 'admin/error', { error: 'Profile not found', statusCode: 404 });
+      }
+
+      const currentUserData = currentUser.toObject ? currentUser.toObject() : currentUser;
+
+      if (req.method === 'POST') {
+        const errors = validationResult(req);
+        const formData = buildProfileFormData(currentUserData, req.body);
+
+        if (!errors.isEmpty()) {
+          const validationErrors = errors.array();
+          return renderAdmin(res, 'admin/profile', {
+            pageTitle: 'My Profile',
+            user: currentUserData,
+            formData,
+            validationErrors,
+            fieldErrorMap: buildValidationMap(validationErrors),
+            error: validationErrors[0]?.msg || 'Please fix the errors below.'
+          });
+        }
+
+        const user = await UserRepository.findByIdWithPassword(adminId);
+        if (!user) {
+          return renderPlain(res.status(404), 'admin/error', { error: 'Profile not found', statusCode: 404 });
+        }
+
+        const name = String(req.body.name || '').trim();
+        const avatar = String(req.body.avatar || '').trim();
+        const bio = String(req.body.bio || '').trim();
+        const currentPassword = String(req.body.currentPassword || '').trim();
+        const newPassword = String(req.body.newPassword || '').trim();
+        const confirmPassword = String(req.body.confirmPassword || '').trim();
+        const isChangingPassword = Boolean(newPassword || confirmPassword || currentPassword);
+
+        if (isChangingPassword) {
+          if (!newPassword || !confirmPassword) {
+            return renderAdmin(res, 'admin/profile', {
+              pageTitle: 'My Profile',
+              user: currentUserData,
+              formData,
+              error: 'Please enter both a new password and confirmation.'
+            });
+          }
+
+          if (!currentPassword) {
+            return renderAdmin(res, 'admin/profile', {
+              pageTitle: 'My Profile',
+              user: currentUserData,
+              formData,
+              error: 'Current password is required to change your password.'
+            });
+          }
+
+          const isCurrentPasswordValid = await user.comparePassword(currentPassword);
+          if (!isCurrentPasswordValid) {
+            return renderAdmin(res, 'admin/profile', {
+              pageTitle: 'My Profile',
+              user: currentUserData,
+              formData,
+              error: 'Current password is incorrect.'
+            });
+          }
+
+          user.password = newPassword;
+        }
+
+        user.name = name;
+        user.avatar = avatar || '/images/default-avatar.png';
+        user.bio = bio;
+
+        await user.save();
+
+        req.session.user.name = user.name;
+        req.session.user.avatar = user.avatar;
+
+        if (req.headers.accept?.includes('application/json') || req.xhr) {
+          return res.json({
+            success: true,
+            message: 'Profile updated successfully.'
+          });
+        }
+
+        req.flash('success', 'Profile updated successfully.');
+        return res.redirect('/admin/profile');
+      }
+
+      return renderAdmin(res, 'admin/profile', {
+        pageTitle: 'My Profile',
+        user: currentUserData,
+        formData: buildProfileFormData(currentUserData)
       });
     } catch (error) {
       next(error);

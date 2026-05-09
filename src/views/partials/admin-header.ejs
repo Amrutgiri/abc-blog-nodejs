@@ -17,7 +17,7 @@
     </a>
     <div class="dropdown">
       <button class="btn btn-user dropdown-toggle" data-bs-toggle="dropdown" type="button">
-        <img src="/images/default-avatar.png" alt="Admin" class="rounded-circle" width="32" height="32">
+        <img src="<%= (adminUser && adminUser.avatar) || '/images/default-avatar.png' %>" alt="Admin" class="rounded-circle" width="32" height="32">
         <span class="d-none d-md-inline ms-2"><%= adminUser ? adminUser.username : 'Admin' %></span>
       </button>
       <ul class="dropdown-menu dropdown-menu-end shadow-sm">
@@ -26,6 +26,9 @@
           <strong><%= adminUser ? adminUser.email : 'admin' %></strong>
         </li>
         <li><hr class="dropdown-divider"></li>
+        <li>
+          <a href="/admin/profile" class="dropdown-item">My Profile</a>
+        </li>
         <li>
           <form method="POST" action="/admin/logout" class="m-0">
             <%- include('../partials/csrf') %>
