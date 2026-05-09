@@ -207,12 +207,18 @@ Disallow: /search
 Sitemap: ${(process.env.SITE_URL || 'http://localhost:3000').replace(/\/+$/, '')}/sitemap.xml`);
 });
 
-ScheduledPostService.start();
+if (process.env.VERCEL !== '1') {
+  ScheduledPostService.start();
+}
 
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+if (require.main === module && process.env.VERCEL !== '1') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
