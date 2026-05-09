@@ -101,7 +101,9 @@ function cacheControl(req, res, next) {
 }
 
 function attachViewLocals(req, res, next) {
-  res.locals.siteUrl = (process.env.SITE_URL || 'http://localhost:3000').replace(/\/+$/, '');
+  const explicit = String(process.env.SITE_URL || '').trim().replace(/\/+$/, '');
+  const vercelUrl = String(process.env.VERCEL_URL || '').trim().replace(/\/+$/, '');
+  res.locals.siteUrl = explicit || (vercelUrl ? (vercelUrl.startsWith('http') ? vercelUrl : `https://${vercelUrl}`) : 'http://localhost:3000');
   res.locals.gaId = process.env.GA_MEASUREMENT_ID || '';
   ensureCsrfToken(req);
   next();

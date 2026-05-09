@@ -1,6 +1,16 @@
 const SiteSettingsService = require('./SiteSettingsService');
 
-const SITE_URL = (process.env.SITE_URL || 'http://localhost:3000').replace(/\/+$/, '');
+function getBaseSiteUrl() {
+  const explicit = String(process.env.SITE_URL || '').trim().replace(/\/+$/, '');
+  if (explicit) return explicit;
+
+  const vercelUrl = String(process.env.VERCEL_URL || '').trim().replace(/\/+$/, '');
+  if (vercelUrl) return vercelUrl.startsWith('http') ? vercelUrl : `https://${vercelUrl}`;
+
+  return 'http://localhost:3000';
+}
+
+const SITE_URL = getBaseSiteUrl();
 
 function absoluteUrl(url = '/') {
   if (!url) return SITE_URL;

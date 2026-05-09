@@ -2,6 +2,16 @@ const Setting = require('../models/Setting');
 
 const SETTINGS_KEY = 'site-config';
 
+function getBaseSiteUrl() {
+  const explicit = String(process.env.SITE_URL || '').trim().replace(/\/+$/, '');
+  if (explicit) return explicit;
+
+  const vercelUrl = String(process.env.VERCEL_URL || '').trim().replace(/\/+$/, '');
+  if (vercelUrl) return vercelUrl.startsWith('http') ? vercelUrl : `https://${vercelUrl}`;
+
+  return 'http://localhost:3000';
+}
+
 const DEFAULT_SETTINGS = {
   siteName: 'Aptitude Booster Club',
   siteDescription: 'Your go-to resource for aptitude tests, competitive exams, and skill development.',
@@ -34,7 +44,7 @@ function cleanUrl(value) {
 }
 
 function absoluteUrl(url = '/') {
-  const siteUrl = (process.env.SITE_URL || 'http://localhost:3000').replace(/\/+$/, '');
+  const siteUrl = getBaseSiteUrl();
   if (!url) return siteUrl;
   if (/^https?:\/\//i.test(url)) return url;
   return `${siteUrl}${url.startsWith('/') ? url : `/${url}`}`;
